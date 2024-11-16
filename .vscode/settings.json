@@ -1,0 +1,23 @@
+{
+    "go.useLanguageServer": true,
+    "go.toolsManagement.autoUpdate": true,
+    "[go]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        },
+        "editor.snippetSuggestions": "none"
+    },
+    "go.lintTool": "golangci-lint",
+    "go.lintFlags": ["--fast"],
+    "editor.suggest.snippetsPreventQuickSuggestions": false,
+    "gopls": {
+        "usePlaceholders": true,
+        "completeUnimported": true,
+        "ui.semanticTokens": true
+    },
+    "files.eol": "\n",
+    "go.buildTags": "",
+    "go.coverOnSave": false,
+    "go.formatTool": "gofmt"
+}
