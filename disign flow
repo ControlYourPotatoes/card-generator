@@ -1,0 +1,51 @@
+This design follows several important principles:
+
+Separation of Concerns:
+
+Card types and validation (types.go)
+Data structure and conversion (card.go)
+Storage interface and implementation (store.go)
+
+
+Interface-based Design:
+
+CardStore interface allows different storage implementations
+Card interface defines common behavior
+
+
+Factory Pattern:
+
+CardFactory handles creation of different card types
+Ensures proper initialization and validation
+
+
+Data Persistence:
+
+CardData struct for serialization
+JSON support built-in
+Extensible for other formats
+
+
+Thread Safety:
+
+Mutex-protected operations in store
+Safe for concurrent access
+
+card-generator/
+├── internal/
+│   ├── card/
+│   │   ├── card.go       # Card interfaces and base types
+│   │   ├── card_test.go
+│   │   ├── types.go      # Card type definitions
+│   │   └── types_test.go
+│   ├── store/
+│   │   ├── memory/
+│   │   │   ├── store.go      # Memory implementation
+│   │   │   └── store_test.go
+│   │   ├── file/
+│   │   │   ├── store.go      # File-based implementation
+│   │   │   └── store_test.go
+│   │   └── store.go      # Store interfaces
+│   └── parser/
+│       ├── csv.go
+│       └── csv_test.go
