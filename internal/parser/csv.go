@@ -5,7 +5,8 @@ import (
     "fmt"
     "io"
     "strconv"
-    "/internal/card"
+    "strings"
+    "github.com/ControlYourPotatoes/card-generator/internal/card"
 )
 
 type Parser struct {
@@ -31,22 +32,32 @@ func (p *Parser) Parse() ([]card.Card, error) {
         colIndex[col] = i
     }
 
+    // Validate required columns
+    requiredColumns := []string{"Type", "Name", "Cost", "Effect"}
+    for _, col := range requiredColumns {
+        if _, exists := colIndex[col]; !exists {
+            return nil, fmt.Errorf("missing required column: %s", col)
+        }
+    }
+
     var cards []card.Card
+    lineNum := 1 // Start after header
     for {
         record, err := p.reader.Read()
         if err == io.EOF {
             break
         }
         if err != nil {
-            return nil, fmt.Errorf("failed to read record: %w", err)
+            return nil, fmt.Errorf("failed to read line %d: %w", lineNum, err)
         }
 
         // Parse the card based on its type
         card, err := p.parseRecord(record, colIndex)
         if err != nil {
-            return nil, fmt.Errorf("failed to parse record: %w", err)
+            return nil, fmt.Errorf("line %d: %w", lineNum, err)
         }
         cards = append(cards, card)
+        lineNum++
     }
 
     return cards, nil
@@ -61,29 +72,83 @@ func (p *Parser) parseRecord(record []string, colIndex map[string]int) (card.Car
         Type:   cardType,
     }
 
+    // Check if Cost column exists
+    if _, exists := colIndex["Cost"]; !exists {
+        return nil, fmt.Errorf("missing required column: Cost")
+    }
+
     cost, err := strconv.Atoi(record[colIndex["Cost"]])
     if err != nil {
-        return nil, fmt.Errorf("invalid cost: %w", err)
+        return nil, fmt.Errorf("invalid cost: not a number")
     }
     baseCard.Cost = cost
 
     switch cardType {
     case card.TypeCreature:
+        // Check required columns for creature
+        if _, exists := colIndex["Attack"]; !exists {
+            return nil, fmt.Errorf("missing required column: Attack")
+        }
+        if _, exists := colIndex["Defense"]; !exists {
+            return nil, fmt.Errorf("missing required column: Defense")
+        }
+
         attack, err := strconv.Atoi(record[colIndex["Attack"]])
         if err != nil {
-            return nil, fmt.Errorf("invalid attack: %w", err)
+            return nil, fmt.Errorf("invalid attack: not a number")
         }
         defense, err := strconv.Atoi(record[colIndex["Defense"]])
         if err != nil {
-            return nil, fmt.Errorf("invalid defense: %w", err)
+            return nil, fmt.Errorf("invalid defense: not a number")
         }
         return &card.Creature{
             BaseCard: baseCard,
             Attack:   attack,
             Defense:  defense,
         }, nil
-    // Add other card types here...
+    case card.TypeArtifact:
+        return &card.Artifact{
+            BaseCard:    baseCard,
+            IsEquipment: strings.Contains(strings.ToLower(baseCard.Effect), "equip"),
+        }, nil
+    case card.TypeSpell:
+        return &card.Spell{
+            BaseCard:   baseCard,
+            TargetType: determineTargetType(baseCard.Effect),
+        }, nil
+    case card.TypeIncantation:
+        return &card.Incantation{
+            BaseCard: baseCard,
+            Timing:   determineTiming(baseCard.Effect),
+        }, nil
+    case card.TypeAnthem:
+        return &card.Anthem{
+            BaseCard:    baseCard,
+            Continuous: true,
+        }, nil
     default:
-        return &baseCard, nil
+        return nil, fmt.Errorf("unknown card type: %s", cardType)
     }
+}
+
+// Helper functions remain the same
+func determineTargetType(effect string) string {
+    effect = strings.ToLower(effect)
+    if strings.Contains(effect, "target creature") {
+        return "Creature"
+    }
+    if strings.Contains(effect, "target player") {
+        return "Player"
+    }
+    return "Any"
+}
+
+func determineTiming(effect string) string {
+    if strings.Contains(effect, "ON ANY CLASH") {
+        return "ON ANY CLASH"
+    }
+    if strings.Contains(effect, "ON ATTACK") {
+        return "ON ATTACK"
+    }
+    return ""
 }

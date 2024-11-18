@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"../internal/card"
+	"github.com/ControlYourPotatoes/card-generator/internal/card"
 )
 
 func TestParse(t *testing.T) {
@@ -142,70 +142,72 @@ Creature,Demon Pup,1,Each time you OFFER; gain +1/1.,1,1`
 }
 
 func TestParseErrors(t *testing.T) {
-	tests := []struct {
-		name    string
-		csv     string
-		wantErr string
-	}{
-		{
-			name: "invalid cost",
-			csv: `Type,Name,Cost,Effect,Attack,Defense
+    tests := []struct {
+        name    string
+        csv     string
+        wantErr string
+    }{
+        {
+            name: "invalid cost",
+            csv: `Type,Name,Cost,Effect,Attack,Defense
 Creature,Test Card,invalid,Test effect,1,1`,
-			wantErr: "invalid cost",
-		},
-		{
-			name: "invalid attack",
-			csv: `Type,Name,Cost,Effect,Attack,Defense
+            wantErr: "line 1: invalid cost: not a number",
+        },
+        {
+            name: "invalid attack",
+            csv: `Type,Name,Cost,Effect,Attack,Defense
 Creature,Test Card,1,Test effect,invalid,1`,
-			wantErr: "invalid attack",
-		},
-		{
-			name: "invalid defense",
-			csv: `Type,Name,Cost,Effect,Attack,Defense
+            wantErr: "line 1: invalid attack: not a number",
+        },
+        {
+            name: "invalid defense",
+            csv: `Type,Name,Cost,Effect,Attack,Defense
 Creature,Test Card,1,Test effect,1,invalid`,
-			wantErr: "invalid defense",
-		},
-		{
-			name: "missing required column",
-			csv: `Type,Name,Effect,Attack,Defense
+            wantErr: "line 1: invalid defense: not a number",
+        },
+        {
+            name: "missing required column",
+            csv: `Type,Name,Effect,Attack,Defense
 Creature,Test Card,Test effect,1,1`,
-			wantErr: "missing required column",
-		},
-	}
+            wantErr: "missing required column: Cost", // This one doesn't have line number because it's caught during header validation
+        },
+    }
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Create a temporary file with test data
-			tmpFile, err := os.CreateTemp("", "test_errors.csv")
-			if err != nil {
-				t.Fatalf("Failed to create temp file: %v", err)
-			}
-			defer os.Remove(tmpFile.Name())
-			
-			if _, err := tmpFile.WriteString(tt.csv); err != nil {
-				t.Fatalf("Failed to write test data: %v", err)
-			}
-			
-			if err := tmpFile.Close(); err != nil {
-				t.Fatalf("Failed to close temp file: %v", err)
-			}
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            // Create a temporary file with test data
+            tmpFile, err := os.CreateTemp("", "test_errors.csv")
+            if err != nil {
+                t.Fatalf("Failed to create temp file: %v", err)
+            }
+            defer os.Remove(tmpFile.Name())
+            
+            if _, err := tmpFile.WriteString(tt.csv); err != nil {
+                t.Fatalf("Failed to write test data: %v", err)
+            }
+            
+            if err := tmpFile.Close(); err != nil {
+                t.Fatalf("Failed to close temp file: %v", err)
+            }
 
-			// Reopen the file for reading
-			file, err := os.Open(tmpFile.Name())
-			if err != nil {
-				t.Fatalf("Failed to open temp file: %v", err)
-			}
-			defer file.Close()
+            // Reopen the file for reading
+            file, err := os.Open(tmpFile.Name())
+            if err != nil {
+                t.Fatalf("Failed to open temp file: %v", err)
+            }
+            defer file.Close()
 
-			p := NewParser(file)
-			_, err = p.Parse()
-			if err == nil {
-				t.Errorf("Expected error containing %q, got nil", tt.wantErr)
-			} else if !contains(err.Error(), tt.wantErr) {
-				t.Errorf("Expected error containing %q, got %q", tt.wantErr, err.Error())
-			}
-		})
-	}
+            p := NewParser(file)
+            _, err = p.Parse()
+            if err == nil {
+                t.Errorf("Expected error containing %q, got nil", tt.wantErr)
+                return
+            }
+            if err.Error() != tt.wantErr {
+                t.Errorf("Expected error %q, got %q", tt.wantErr, err.Error())
+            }
+        })
+    }
 }
 
 // Helper function to check if a string contains a substring
