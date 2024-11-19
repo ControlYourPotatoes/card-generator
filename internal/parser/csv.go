@@ -14,11 +14,13 @@ type Parser struct {
 }
 
 func NewParser(r io.Reader) *Parser {
-    return &Parser{
+    parser := &Parser{
         reader: csv.NewReader(r),
     }
+    // Allow variable number of fields per record
+    parser.reader.FieldsPerRecord = -1
+    return parser
 }
-
 func (p *Parser) Parse() ([]card.Card, error) {
     // Read header
     header, err := p.reader.Read()
@@ -64,73 +66,100 @@ func (p *Parser) Parse() ([]card.Card, error) {
 }
 
 func (p *Parser) parseRecord(record []string, colIndex map[string]int) (card.Card, error) {
-    cardType := card.CardType(record[colIndex["Type"]])
+    // Safely get value from record with bounds checking
+    getValue := func(columnName string) string {
+        if idx, exists := colIndex[columnName]; exists && idx < len(record) {
+            return record[idx]
+        }
+        return ""
+    }
+
+    // Get required fields
+    cardType := card.CardType(getValue("Type"))
+    name := getValue("Name")
+    effect := getValue("Effect")
     
-    baseCard := card.BaseCard{
-        Name:   record[colIndex["Name"]],
-        Effect: record[colIndex["Effect"]],
-        Type:   cardType,
+    if name == "" || effect == "" {
+        return nil, fmt.Errorf("missing required fields name or effect")
     }
 
-    // Check if Cost column exists
-    if _, exists := colIndex["Cost"]; !exists {
-        return nil, fmt.Errorf("missing required column: Cost")
+    // Parse cost
+    costStr := getValue("Cost")
+    if costStr == "" {
+        return nil, fmt.Errorf("missing required field: Cost")
     }
-
-    cost, err := strconv.Atoi(record[colIndex["Cost"]])
+    cost, err := strconv.Atoi(costStr)
     if err != nil {
         return nil, fmt.Errorf("invalid cost: not a number")
     }
-    baseCard.Cost = cost
+
+    baseCard := card.BaseCard{
+        Name:   name,
+        Effect: effect,
+        Type:   cardType,
+        Cost:   cost,
+    }
 
     switch cardType {
     case card.TypeCreature:
-        // Check required columns for creature
-        if _, exists := colIndex["Attack"]; !exists {
-            return nil, fmt.Errorf("missing required column: Attack")
+        // Parse Attack
+        attackStr := getValue("Attack")
+        if attackStr == "" {
+            return nil, fmt.Errorf("missing required field Attack for Creature")
         }
-        if _, exists := colIndex["Defense"]; !exists {
-            return nil, fmt.Errorf("missing required column: Defense")
-        }
-
-        attack, err := strconv.Atoi(record[colIndex["Attack"]])
+        attack, err := strconv.Atoi(attackStr)
         if err != nil {
             return nil, fmt.Errorf("invalid attack: not a number")
         }
-        defense, err := strconv.Atoi(record[colIndex["Defense"]])
+
+        // Parse Defense
+        defenseStr := getValue("Defense")
+        if defenseStr == "" {
+            return nil, fmt.Errorf("missing required field Defense for Creature")
+        }
+        defense, err := strconv.Atoi(defenseStr)
         if err != nil {
             return nil, fmt.Errorf("invalid defense: not a number")
         }
+
+        // Get trait (optional)
+        trait := getValue("Trait")
+
         return &card.Creature{
             BaseCard: baseCard,
             Attack:   attack,
             Defense:  defense,
+            Trait:    trait,
         }, nil
+
     case card.TypeArtifact:
         return &card.Artifact{
             BaseCard:    baseCard,
             IsEquipment: strings.Contains(strings.ToLower(baseCard.Effect), "equip"),
         }, nil
+
     case card.TypeSpell:
         return &card.Spell{
             BaseCard:   baseCard,
             TargetType: determineTargetType(baseCard.Effect),
         }, nil
+
     case card.TypeIncantation:
         return &card.Incantation{
             BaseCard: baseCard,
             Timing:   determineTiming(baseCard.Effect),
         }, nil
+
     case card.TypeAnthem:
         return &card.Anthem{
             BaseCard:    baseCard,
             Continuous: true,
         }, nil
+
     default:
         return nil, fmt.Errorf("unknown card type: %s", cardType)
     }
 }
-
 // Helper functions remain the same
 func determineTargetType(effect string) string {
     effect = strings.ToLower(effect)

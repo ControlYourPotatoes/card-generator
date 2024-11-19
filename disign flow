@@ -49,3 +49,22 @@ card-generator/
 │   └── parser/
 │       ├── csv.go
 │       └── csv_test.go
+
+The main package I've provided shows how to bridge the components together. Here's what it does:
+
+Initializes the memory store
+Creates a card factory
+Sets up a parser for the input file
+Processes cards through the pipeline:
+
+Parse CSV → Create CardData → Factory creates Card → Store saves Card
+
+
+
+To complete the implementation, you'll need to:
+
+Add error handling for edge cases in the parser
+Implement proper logging
+Add configuration management
+Consider implementing a file-based store
+Add CLI commands for different operations (create, read, update, delete)

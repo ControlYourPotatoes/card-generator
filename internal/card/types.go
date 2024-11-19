@@ -72,7 +72,7 @@ type Creature struct {
     BaseCard
     Attack  int
     Defense int
-    SubType string // e.g., "Demon", "Goblin"
+    Trait string // e.g., "Demon", "Goblin"
 }
 
 func (c Creature) Validate() error {
@@ -84,9 +84,6 @@ func (c Creature) Validate() error {
     }
     if c.Defense < 0 {
         return fmt.Errorf("defense cannot be negative")
-    }
-    if c.SubType == "" {
-        return fmt.Errorf("subtype cannot be empty")
     }
     return nil
 }

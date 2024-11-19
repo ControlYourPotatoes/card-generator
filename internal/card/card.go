@@ -6,61 +6,61 @@ import (
 )
 
 // CardData represents the serializable form of a card
-// This is used for storing/loading cards
 type CardData struct {
-	Type        CardType            `json:"type"`
-	Name        string             `json:"name"`
-	Cost        int                `json:"cost"`
-	Effect      string             `json:"effect"`
-	Attack      int                `json:"attack,omitempty"`
-	Defense     int                `json:"defense,omitempty"`
-	SubType     string             `json:"subtype,omitempty"`
-	IsEquipment bool               `json:"is_equipment,omitempty"`
-	TargetType  string             `json:"target_type,omitempty"`
-	Timing      string             `json:"timing,omitempty"`
-	Continuous  bool               `json:"continuous,omitempty"`
-	Keywords    []string           `json:"keywords,omitempty"`
-	Metadata    map[string]string  `json:"metadata,omitempty"`
+    Type        CardType           `json:"type"`
+    Name        string            `json:"name"`
+    Cost        int               `json:"cost"`
+    Effect      string            `json:"effect"`
+    Attack      int               `json:"attack,omitempty"`
+    Defense     int               `json:"defense,omitempty"`
+    Trait       string            `json:"trait,omitempty"`
+    IsEquipment bool              `json:"is_equipment,omitempty"`
+    TargetType  string            `json:"target_type,omitempty"`
+    Timing      string            `json:"timing,omitempty"`
+    Continuous  bool              `json:"continuous,omitempty"`
+    Keywords    []string          `json:"keywords,omitempty"`
+    Metadata    map[string]string `json:"metadata,omitempty"`
 }
-
 // CardStore interface defines methods for storing and retrieving cards
 type CardStore interface {
-	Save(card Card) error
-	Load(id string) (Card, error)
-	List() ([]Card, error)
-	Delete(id string) error
+    // Save stores a card and returns its ID
+    Save(card Card) (string, error)
+    Load(id string) (Card, error)
+    List() ([]Card, error)
+    Delete(id string) error
 }
 
 // CardFactory handles the creation of different card types
 type CardFactory struct {
-	store CardStore
+    store CardStore
 }
 
 // NewCardFactory creates a new card factory
 func NewCardFactory(store CardStore) *CardFactory {
-	return &CardFactory{
-		store: store,
-	}
+    return &CardFactory{
+        store: store,
+    }
 }
+
 
 // CreateFromData creates a card from CardData
 func (f *CardFactory) CreateFromData(data *CardData) (Card, error) {
-	baseCard := BaseCard{
-		Name:   data.Name,
-		Cost:   data.Cost,
-		Effect: data.Effect,
-		Type:   data.Type,
-	}
+    baseCard := BaseCard{
+        Name:   data.Name,
+        Cost:   data.Cost,
+        Effect: data.Effect,
+        Type:   data.Type,
+    }
 
-	var card Card
-	switch data.Type {
-	case TypeCreature:
-		card = &Creature{
-			BaseCard: baseCard,
-			Attack:   data.Attack,
-			Defense:  data.Defense,
-			SubType:  data.SubType,
-		}
+    var card Card
+    switch data.Type {
+    case TypeCreature:
+        card = &Creature{
+            BaseCard: baseCard,
+            Attack:   data.Attack,
+            Defense:  data.Defense,
+            Trait:    data.Trait,
+        }
 	case TypeArtifact:
 		card = &Artifact{
 			BaseCard:    baseCard,
@@ -107,7 +107,7 @@ func ToData(card Card) *CardData {
 	case *Creature:
 		data.Attack = c.Attack
 		data.Defense = c.Defense
-		data.SubType = c.SubType
+		data.Trait = c.Trait
 	case *Artifact:
 		data.IsEquipment = c.IsEquipment
 	case *Spell:
