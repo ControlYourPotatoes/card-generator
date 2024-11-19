@@ -20,10 +20,9 @@ import (
 const (
 	padding     = 20
 	lineHeight  = 190
-	indentWidth = 20
-	maxWidth    = 250
+	indentWidth = 15
+	maxWidth    = 2000
 )
-
 
 type Generator struct {
 	font        *truetype.Font
@@ -54,8 +53,8 @@ func NewGenerator() (*Generator, error) {
 
 	return &Generator{
 		font:        f,
-		fontSize:    96,
-		dpi:         72,
+		fontSize:    84,
+		dpi:         64,
 		templateImg: templateImg,
 	}, nil
 }
@@ -81,11 +80,11 @@ func (g *Generator) GenerateImage(cardData *card.CardData, outputPath string) er
 			// Handle effect text specially with wrapping
 			effectText := strings.TrimPrefix(line, "  \"effect\": \"")
 			effectText = strings.TrimSuffix(effectText, "\"")
-			
+
 			// Reduce font size for effect text
 			originalSize := g.fontSize
 			c.SetFontSize(g.fontSize * 0.9) // Make effect text smaller
-			
+
 			wrappedLines := g.wrapText(effectText, maxWidth)
 			for _, wrappedLine := range wrappedLines {
 				x := padding + 2*indentWidth // Extra indent for wrapped effect text
@@ -97,7 +96,7 @@ func (g *Generator) GenerateImage(cardData *card.CardData, outputPath string) er
 				y += lineHeight / 2 // Reduced line height for wrapped text
 			}
 			//Add a new line after the effect text
-			
+			y += lineHeight / 2
 			// Restore original font size
 			c.SetFontSize(originalSize)
 		} else {
@@ -148,7 +147,7 @@ func (g *Generator) wrapText(text string, maxWidth int) []string {
 	for _, word := range words[1:] {
 		// Calculate width of current line + space + new word
 		lineWidth := len(currentLine)*int(g.fontSize*0.6) + spaceWidth + len(word)*int(g.fontSize*0.6)
-		
+
 		if lineWidth <= maxWidth {
 			currentLine += " " + word
 		} else {
