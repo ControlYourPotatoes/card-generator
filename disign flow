@@ -68,3 +68,22 @@ Implement proper logging
 Add configuration management
 Consider implementing a file-based store
 Add CLI commands for different operations (create, read, update, delete)
+
+internal/generator/
+├── image/
+│   ├── generator.go      # Main orchestrator that combines all elements
+│   ├── templates/        # Card type-specific templates
+│   │   ├── template.go   # Base template interface/types
+│   │   ├── creature.go   # Creature card template
+│   │   ├── artifact.go   # Artifact card template
+│   │   ├── spell.go      # Spell card template
+│   │   ├── incantation.go# Incantation card template
+│   │   └── anthem.go     # Anthem card template
+│   ├── cardimage/        # Card art handling
+│   │   ├── image.go      # Image loading and positioning
+│   │   └── bounds.go     # Art frame boundaries and scaling
+│   └── text/            # Text rendering components
+│       ├── text.go      # Common text rendering utilities
+│       ├── name.go      # Card name rendering
+│       ├── effect.go    # Card effect/rules text
+│       └── stats.go     # Stats rendering (attack/defense)
