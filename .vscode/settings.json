@@ -19,5 +19,6 @@
     "files.eol": "\n",
     "go.buildTags": "",
     "go.coverOnSave": false,
-    "go.formatTool": "gofmt"
+    "go.formatTool": "gofmt",
+    "editor.formatOnSave": true
 }

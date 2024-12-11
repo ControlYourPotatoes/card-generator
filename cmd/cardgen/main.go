@@ -1,17 +1,17 @@
 package main
 
 import (
-    "encoding/json"
-    "flag"
-    "fmt"
-    "log"
-    "os"
-    "path/filepath"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
 
-    "github.com/ControlYourPotatoes/card-generator/internal/card"
-    "github.com/ControlYourPotatoes/card-generator/internal/store/memory"
-    "github.com/ControlYourPotatoes/card-generator/internal/parser"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/image"
+	"github.com/ControlYourPotatoes/card-generator/internal/card"
+	"github.com/ControlYourPotatoes/card-generator/internal/generator/image"
+	"github.com/ControlYourPotatoes/card-generator/internal/parser"
+	"github.com/ControlYourPotatoes/card-generator/internal/store/memory"
 )
 
 type CardOutput struct {

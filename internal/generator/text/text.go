@@ -35,4 +35,4 @@ func (tr *TextRenderer) RenderEffect(img *image.RGBA, effect string, bounds imag
 func (tr *TextRenderer) RenderStats(img *image.RGBA, attack, defense int, bounds StatsPosition) error {
     // Implement stats rendering
     return nil
-}
+} 
