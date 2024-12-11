@@ -36,4 +36,3 @@ func (tr *TextRenderer) RenderStats(img *image.RGBA, attack, defense int, bounds
     // Implement stats rendering
     return nil
 }
-
