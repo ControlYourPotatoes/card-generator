@@ -2,7 +2,10 @@
 package cardtypes
 
 import (
+	"fmt"
     "image"
+	"image/png"
+	"os"
     
     "github.com/ControlYourPotatoes/card-generator/internal/card"
     "github.com/ControlYourPotatoes/card-generator/internal/generator/layout"
@@ -28,4 +31,20 @@ type BaseCardTemplate struct {
 
 func (b *BaseCardTemplate) GetArtBounds() image.Rectangle {
     return b.ArtBounds
+}
+
+// LoadFrame loads an image from the specified path
+func LoadFrame(path string) (image.Image, error) {
+    f, err := os.Open(path)
+    if err != nil {
+        return nil, fmt.Errorf("failed to open frame: %w", err)
+    }
+    defer f.Close()
+
+    img, err := png.Decode(f)
+    if err != nil {
+        return nil, fmt.Errorf("failed to decode frame: %w", err)
+    }
+
+    return img, nil
 }

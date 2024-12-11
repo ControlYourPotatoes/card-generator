@@ -77,10 +77,3 @@ func (t *CreatureTemplate) isSpecialFrame(data *card.CardData) bool {
     return false
 }
 
-// LoadFrame is a helper function that should probably be moved to a shared utility package
-// or imported from wherever the image loading functionality lives
-func LoadFrame(path string) (image.Image, error) {
-    // Implementation needed - this should be imported from the appropriate package
-    // or implemented here if needed
-    panic("LoadFrame needs to be implemented or imported")
-}
