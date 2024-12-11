@@ -1,38 +1,92 @@
-// internal/generator/image/text/text.go
-
+// text.go
 package text
 
 import (
     "image"
-    "image/draw"
-
-    "github.com/golang/freetype"
-    "github.com/golang/freetype/truetype"
+    "github.com/ControlYourPotatoes/card-generator/internal/card"
 )
 
-type TextRenderer struct {
-    nameFont   *truetype.Font
-    effectFont *truetype.Font
-    statsFont  *truetype.Font
+// TextConfig defines the styling configuration for text elements
+type TextConfig struct {
+    FontSize  float64
+    Color     string
+    Bold      bool
+    Alignment string
 }
 
-func NewTextRenderer() (*TextRenderer, error) {
-    // Load fonts for different text elements
-    // Could use different fonts for name, effect, and stats
-    return &TextRenderer{}, nil
+// TextDetails contains all text-related information for a card
+type TextDetails struct {
+    Title struct {
+        Text      string
+        Position  image.Rectangle
+        Style     TextConfig
+        Cost      CostInfo
+    }
+    Effect struct {
+        Keywords     []string
+        Text        string
+        Position    image.Rectangle
+        Style       TextConfig
+    }
+    Stats struct {
+        CardType    string
+        Subtype     string
+        Power       string
+        Toughness   string
+        Position    image.Rectangle
+        Style       TextConfig
+    }
+    IsSpecialFrame bool
+    FramePath     string
 }
 
-func (tr *TextRenderer) RenderName(img *image.RGBA, name string, bounds image.Rectangle) error {
-    // Implement name rendering with appropriate font and size
-    return nil
+type CostInfo struct {
+    Value     string
+    Position  image.Point
+    IsXCost   bool
+    Style     TextConfig
 }
 
-func (tr *TextRenderer) RenderEffect(img *image.RGBA, effect string, bounds image.Rectangle) error {
-    // Implement effect text rendering with word wrap
-    return nil
+
+// TextBounds holds positioning information
+type TextBounds struct {
+    Rect     image.Rectangle
+    Style    TextConfig
 }
 
-func (tr *TextRenderer) RenderStats(img *image.RGBA, attack, defense int, bounds StatsPosition) error {
-    // Implement stats rendering
-    return nil
-} 
+// TitleProcessor handles title and cost text processing
+type TitleProcessor interface {
+    ProcessTitle(card card.Card) (TextBounds, error)
+    ProcessCost(cost int) (TextBounds, error)
+    ValidateTitle(title string) error
+}
+
+// EffectProcessor handles effect text processing
+type EffectProcessor interface {
+    ProcessEffect(effect string) (TextBounds, error)
+    ExtractKeywords(effect string) []string
+    ValidateEffect(effect string) error
+}
+
+// StatsProcessor handles stats text processing
+type StatsProcessor interface {
+    ProcessStats(card card.Card) (TextBounds, error)
+    ValidateStats(card card.Card) error
+}
+
+// TextRenderer handles the final rendering of all text elements
+type TextRenderer interface {
+    RenderTitle(bounds TextBounds) error
+    RenderEffect(bounds TextBounds) error
+    RenderStats(bounds TextBounds) error
+    RenderCost(bounds TextBounds) error
+}
+
+// TextOutput represents the final processed text information
+type TextOutput struct {
+    Title    TextBounds
+    Cost     TextBounds
+    Effect   TextBounds
+    Stats    TextBounds
+    Keywords []string
+}
