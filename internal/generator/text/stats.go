@@ -3,7 +3,6 @@ package text
 import (
     "fmt"
     "image"
-    "strings"
     
     "github.com/ControlYourPotatoes/card-generator/internal/card"
 )

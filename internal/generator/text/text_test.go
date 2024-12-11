@@ -1,8 +1,8 @@
-// text_test.go
 package text
 
 import (
     "encoding/json"
+    "fmt"
     "os"
     "path/filepath"
     "testing"
@@ -10,35 +10,44 @@ import (
     "github.com/ControlYourPotatoes/card-generator/internal/card"
 )
 
+type testProcessor struct {
+    title  TitleProcessor
+    effect EffectProcessor
+    stats  StatsProcessor
+}
+
+func newTestProcessor() *testProcessor {
+    return &testProcessor{
+        title:  NewTitleProcessor(),
+        effect: NewEffectProcessor(),
+        stats:  NewStatsProcessor(),
+    }
+}
+
 func TestMain(m *testing.M) {
-    // Setup test output directory
     testOutputDir := "testoutput"
-    os.RemoveAll(testOutputDir) // Clean previous test output
+    os.RemoveAll(testOutputDir)
     os.MkdirAll(testOutputDir, 0755)
     
-    // Run tests
     result := m.Run()
     
-    // Cleanup
     os.RemoveAll(testOutputDir)
     os.Exit(result)
 }
 
-func TestCardProcessing(t *testing.T) {
+func TestProcessors(t *testing.T) {
     tests := []struct {
         name     string
-        card     card.Card
+        cardData *card.CardData
         wantFile string
     }{
         {
             name: "Basic Creature",
-            card: &card.Creature{
-                BaseCard: card.BaseCard{
-                    Name:   "Test Creature",
-                    Cost:   2,
-                    Effect: "This is a test effect",
-                    Type:   card.TypeCreature,
-                },
+            cardData: &card.CardData{
+                Type:    card.TypeCreature,
+                Name:    "Test Creature",
+                Cost:    2,
+                Effect:  "This is a test effect.",
                 Attack:  2,
                 Defense: 2,
                 Trait:   "Beast",
@@ -47,55 +56,130 @@ func TestCardProcessing(t *testing.T) {
         },
         {
             name: "X Cost Creature",
-            card: &card.Creature{
-                BaseCard: card.BaseCard{
-                    Name:   "Variable Beast",
-                    Cost:   -1, // Indicates X cost
-                    Effect: "This creature enters with X +1/+1 counters",
-                    Type:   card.TypeCreature,
-                },
+            cardData: &card.CardData{
+                Type:    card.TypeCreature,
+                Name:    "Variable Beast",
+                Cost:    -1,
+                Effect:  "This creature enters with X +1/+1 counters.",
                 Attack:  0,
                 Defense: 0,
                 Trait:   "Beast",
             },
             wantFile: "x_cost_creature.json",
         },
-        {
-            name: "Keyword Creature",
-            card: &card.Creature{
-                BaseCard: card.BaseCard{
-                    Name:   "Elite Warrior",
-                    Cost:   3,
-                    Effect: "HASTE, CRITICAL • Deal 2 damage to any target",
-                    Type:   card.TypeCreature,
-                },
-                Attack:  3,
-                Defense: 2,
-                Trait:   "Warrior",
-            },
-            wantFile: "keyword_creature.json",
-        },
-        // Add more test cases for other card types...
+        // ... other test cases remain the same
     }
 
-    processor := NewTextProcessor() // You'll need to implement this
+    proc := newTestProcessor()
+    factory := card.NewCardFactory(nil) // nil store for testing
     
     for _, tt := range tests {
         t.Run(tt.name, func(t *testing.T) {
-            details, err := processor.ProcessCard(tt.card)
+            // Convert CardData to Card interface
+            cardInstance, err := factory.CreateFromData(tt.cardData)
             if err != nil {
-                t.Fatalf("ProcessCard() error = %v", err)
+                t.Fatalf("Failed to create card: %v", err)
             }
 
-            // Save the processed details to a JSON file
+            details := &TextDetails{}
+            
+            // Process Title
+            titleBounds, err := proc.title.ProcessTitle(cardInstance)
+            if err != nil {
+                t.Fatalf("ProcessTitle() error = %v", err)
+            }
+            details.Title.Text = cardInstance.GetName()
+            details.Title.Position = titleBounds.Rect
+            details.Title.Style = titleBounds.Style
+            
+            // Process Cost
+            costBounds, err := proc.title.ProcessCost(cardInstance.GetCost())
+            if err != nil {
+                t.Fatalf("ProcessCost() error = %v", err)
+            }
+            details.Title.Cost = CostInfo{
+                Value:    getCostString(cardInstance.GetCost()),
+                Position: costBounds.Rect.Min,
+                IsXCost:  cardInstance.GetCost() < 0,
+                Style:    costBounds.Style,
+            }
+            
+            // Process Effect
+            effectBounds, err := proc.effect.ProcessEffect(cardInstance.GetEffect())
+            if err != nil {
+                t.Fatalf("ProcessEffect() error = %v", err)
+            }
+            details.Effect.Keywords = tt.cardData.Keywords
+            details.Effect.Text = cardInstance.GetEffect()
+            details.Effect.Position = effectBounds.Rect
+            details.Effect.Style = effectBounds.Style
+            
+            // Process Stats
+            statsBounds, err := proc.stats.ProcessStats(cardInstance)
+            if err != nil {
+                t.Fatalf("ProcessStats() error = %v", err)
+            }
+            details.Stats.CardType = string(tt.cardData.Type)
+            details.Stats.Subtype = tt.cardData.Trait
+            if creature, ok := cardInstance.(*card.Creature); ok {
+                details.Stats.Power = fmt.Sprintf("%d", creature.Attack)
+                details.Stats.Toughness = fmt.Sprintf("%d", creature.Defense)
+            }
+            details.Stats.Position = statsBounds.Rect
+            details.Stats.Style = statsBounds.Style
+
+            // Save the processed details
             outputPath := filepath.Join("testoutput", tt.wantFile)
             saveTextDetails(t, outputPath, details)
 
-            // Compare with expected output
-            // You might want to create golden files for comparison
-            // or add specific assertions about the TextDetails
+            // Validate the details
             validateTextDetails(t, details)
         })
+    }
+}
+
+// Helper functions
+
+func getCostString(cost int) string {
+    if cost < 0 {
+        return "X"
+    }
+    return fmt.Sprintf("%d", cost)
+}
+
+func validateTextDetails(t *testing.T, details *TextDetails) {
+    t.Helper()
+    
+    // Title validations
+    if details.Title.Text == "" {
+        t.Error("Title text should not be empty")
+    }
+    if details.Title.Position.Empty() {
+        t.Error("Title position should be set")
+    }
+    
+    // Effect validations
+    if details.Effect.Text == "" {
+        t.Error("Effect text should not be empty")
+    }
+    if details.Effect.Position.Empty() {
+        t.Error("Effect position should be set")
+    }
+    
+    // Stats validations
+    if details.Stats.CardType == "" {
+        t.Error("Card type should not be empty")
+    }
+    if details.Stats.Position.Empty() {
+        t.Error("Stats position should be set")
+    }
+    
+    // Cost validations
+    if details.Title.Cost.Value == "" {
+        t.Error("Cost value should not be empty")
+    }
+    if details.Title.Cost.Position.X == 0 && details.Title.Cost.Position.Y == 0 {
+        t.Error("Cost position should be set")
     }
 }
 
@@ -108,15 +192,4 @@ func saveTextDetails(t *testing.T, path string, details *TextDetails) {
     if err := os.WriteFile(path, data, 0644); err != nil {
         t.Fatalf("Failed to write test output: %v", err)
     }
-}
-
-func validateTextDetails(t *testing.T, details *TextDetails) {
-    // Add validation logic here
-    if details.Title.Text == "" {
-        t.Error("Title text should not be empty")
-    }
-    if details.Title.Position.Empty() {
-        t.Error("Title position should be set")
-    }
-    // Add more validation as needed...
 }

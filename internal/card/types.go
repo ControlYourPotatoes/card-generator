@@ -58,7 +58,7 @@ func (b BaseCard) Validate() error {
     if b.Name == "" {
         return fmt.Errorf("name cannot be empty")
     }
-    if b.Cost < 0 {
+    if b.Cost < -1 {
         return fmt.Errorf("cost cannot be negative")
     }
     if b.Effect == "" {
