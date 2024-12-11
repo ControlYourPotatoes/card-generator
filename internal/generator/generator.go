@@ -1,204 +1,184 @@
-package image
+// internal/generator/generator.go
+package generator
 
 import (
-	"fmt"
-	"image"
-	"image/color"
-	"image/draw"
-	"image/png"
-	"os"
-	"path/filepath"
-	"strings"
+    "fmt"
+    "image"
+    "image/draw"
+    "image/png"
+    "os"
+    "path/filepath"
 
-	"github.com/golang/freetype"
-	"github.com/golang/freetype/truetype"
-	"golang.org/x/image/font/gofont/goregular"
-
-	"github.com/ControlYourPotatoes/card-generator/internal/card"
+    "github.com/ControlYourPotatoes/card-generator/internal/card"
+    "github.com/ControlYourPotatoes/card-generator/internal/generator/art"
+    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates"
+    "github.com/ControlYourPotatoes/card-generator/internal/generator/text"
 )
 
-const (
-	padding     = 20
-	lineHeight  = 190
-	indentWidth = 15
-	maxWidth    = 2000
-)
-
-type Generator struct {
-	font        *truetype.Font
-	fontSize    float64
-	dpi         float64
-	templateImg image.Image
+// CardGenerator defines the interface for generating cards
+type CardGenerator interface {
+    // GenerateCard creates a card image from the provided data and saves it to the specified path
+    GenerateCard(data *card.CardData, outputPath string) error
+    
+    // ValidateCard checks if the card data is valid for generation
+    ValidateCard(data *card.CardData) error
+    
+    // Close cleans up any resources used by the generator
+    Close() error
 }
 
-func NewGenerator() (*Generator, error) {
-	// Load the built-in Go regular font
-	f, err := truetype.Parse(goregular.TTF)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse font: %w", err)
-	}
-
-	// Load the template image
-	templatePath := filepath.Join("internal", "generator", "templates", "Sample.png")
-	templateFile, err := os.Open(templatePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open template image: %w", err)
-	}
-	defer templateFile.Close()
-
-	templateImg, err := png.Decode(templateFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode template image: %w", err)
-	}
-
-	return &Generator{
-		font:        f,
-		fontSize:    84,
-		dpi:         64,
-		templateImg: templateImg,
-	}, nil
+// cardGenerator implements the CardGenerator interface
+type cardGenerator struct {
+    textProc text.TextProcessor
+    artProc  art.ArtProcessor
 }
 
-func (g *Generator) GenerateImage(cardData *card.CardData, outputPath string) error {
-	bounds := g.templateImg.Bounds()
-	img := image.NewRGBA(bounds)
-	draw.Draw(img, bounds, g.templateImg, image.Point{}, draw.Over)
-
-	c := freetype.NewContext()
-	c.SetDPI(g.dpi)
-	c.SetFont(g.font)
-	c.SetFontSize(g.fontSize)
-	c.SetClip(img.Bounds())
-	c.SetDst(img)
-	c.SetSrc(image.NewUniform(color.White))
-
-	lines := g.calculateLines(cardData)
-
-	y := padding + int(c.PointToFixed(g.fontSize)>>6)
-	for _, line := range lines {
-		if strings.Contains(line, "\"effect\":") {
-			// Handle effect text specially with wrapping
-			effectText := strings.TrimPrefix(line, "  \"effect\": \"")
-			effectText = strings.TrimSuffix(effectText, "\"")
-
-			// Reduce font size for effect text
-			originalSize := g.fontSize
-			c.SetFontSize(g.fontSize * 0.9) // Make effect text smaller
-
-			wrappedLines := g.wrapText(effectText, maxWidth)
-			for _, wrappedLine := range wrappedLines {
-				x := padding + 2*indentWidth // Extra indent for wrapped effect text
-				pt := freetype.Pt(x, y)
-				_, err := c.DrawString(wrappedLine, pt)
-				if err != nil {
-					return fmt.Errorf("failed to draw text: %w", err)
-				}
-				y += lineHeight / 2 // Reduced line height for wrapped text
-			}
-			//Add a new line after the effect text
-			y += lineHeight / 2
-			// Restore original font size
-			c.SetFontSize(originalSize)
-		} else {
-			// Handle other lines normally
-			indent := strings.Count(line, "  ") * indentWidth
-			x := padding + indent
-			pt := freetype.Pt(x, y)
-			_, err := c.DrawString(line, pt)
-			if err != nil {
-				return fmt.Errorf("failed to draw text: %w", err)
-			}
-			y += lineHeight
-		}
-	}
-
-	// Create output directory and save image...
-	if err := os.MkdirAll(filepath.Dir(outputPath), 0755); err != nil {
-		return fmt.Errorf("failed to create output directory: %w", err)
-	}
-
-	f, err := os.Create(outputPath)
-	if err != nil {
-		return fmt.Errorf("failed to create output file: %w", err)
-	}
-	defer f.Close()
-
-	encoder := png.Encoder{
-		CompressionLevel: png.BestCompression,
-	}
-	if err := encoder.Encode(f, img); err != nil {
-		return fmt.Errorf("failed to encode image: %w", err)
-	}
-
-	return nil
+// Configuration for the card generator
+type Config struct {
+    OutputPath string            // Base path for output files
+    TextProc   text.TextProcessor // Custom text processor (optional)
+    ArtProc    art.ArtProcessor  // Custom art processor (optional)
 }
 
-// wrapText breaks text into lines that fit within maxWidth
-func (g *Generator) wrapText(text string, maxWidth int) []string {
-	var lines []string
-	words := strings.Fields(text)
-	if len(words) == 0 {
-		return lines
-	}
+// NewCardGenerator creates a new card generator with default processors
+func NewCardGenerator() (CardGenerator, error) {
+    textProc, err := text.NewTextProcessor()
+    if err != nil {
+        return nil, fmt.Errorf("failed to create text processor: %w", err)
+    }
 
-	currentLine := words[0]
-	spaceWidth := int(g.fontSize * 0.3) // Approximate space width
+    artProc := art.NewPlaceholderProcessor()
 
-	for _, word := range words[1:] {
-		// Calculate width of current line + space + new word
-		lineWidth := len(currentLine)*int(g.fontSize*0.6) + spaceWidth + len(word)*int(g.fontSize*0.6)
-
-		if lineWidth <= maxWidth {
-			currentLine += " " + word
-		} else {
-			lines = append(lines, currentLine)
-			currentLine = word
-		}
-	}
-	lines = append(lines, currentLine)
-
-	return lines
+    return &cardGenerator{
+        textProc: textProc,
+        artProc:  artProc,
+    }, nil
 }
-func (g *Generator) calculateLines(data *card.CardData) []string {
-	var lines []string
-	lines = append(lines, "{")
-	lines = append(lines, fmt.Sprintf("  \"type\": \"%s\",", data.Type))
-	lines = append(lines, fmt.Sprintf("  \"name\": \"%s\",", data.Name))
-	lines = append(lines, fmt.Sprintf("  \"cost\": %d,", data.Cost))
-	lines = append(lines, fmt.Sprintf("  \"effect\": \"%s\"", data.Effect))
 
-	// Add type-specific fields
-	switch data.Type {
-	case card.TypeCreature:
-		if data.Attack > 0 || data.Defense > 0 {
-			lines[len(lines)-1] += ","
-			lines = append(lines, fmt.Sprintf("  \"attack\": %d,", data.Attack))
-			lines = append(lines, fmt.Sprintf("  \"defense\": %d", data.Defense))
-		}
-		if data.Trait != "" {
-			lines[len(lines)-1] += ","
-			lines = append(lines, fmt.Sprintf("  \"trait\": \"%s\"", data.Trait))
-		}
-	case card.TypeArtifact:
-		if data.IsEquipment {
-			lines[len(lines)-1] += ","
-			lines = append(lines, "  \"is_equipment\": true")
-		}
-	case card.TypeSpell:
-		if data.TargetType != "" {
-			lines[len(lines)-1] += ","
-			lines = append(lines, fmt.Sprintf("  \"target_type\": \"%s\"", data.TargetType))
-		}
-	case card.TypeIncantation:
-		if data.Timing != "" {
-			lines[len(lines)-1] += ","
-			lines = append(lines, fmt.Sprintf("  \"timing\": \"%s\"", data.Timing))
-		}
-	case card.TypeAnthem:
-		lines[len(lines)-1] += ","
-		lines = append(lines, "  \"continuous\": true")
-	}
+// NewCardGeneratorWithConfig creates a new card generator with custom configuration
+func NewCardGeneratorWithConfig(cfg *Config) (CardGenerator, error) {
+    var err error
+    g := &cardGenerator{}
+    
+    // Initialize text processor
+    if cfg.TextProc != nil {
+        g.textProc = cfg.TextProc
+    } else {
+        g.textProc, err = text.NewTextProcessor()
+        if err != nil {
+            return nil, fmt.Errorf("failed to create text processor: %w", err)
+        }
+    }
+    
+    // Initialize art processor
+    if cfg.ArtProc != nil {
+        g.artProc = cfg.ArtProc
+    } else {
+        g.artProc = art.NewPlaceholderProcessor()
+    }
+    
+    return g, nil
+}
 
-	lines = append(lines, "}")
-	return lines
+func (g *cardGenerator) ValidateCard(data *card.CardData) error {
+    if data == nil {
+        return fmt.Errorf("card data cannot be nil")
+    }
+
+    // Validate required fields
+    if data.Name == "" {
+        return fmt.Errorf("card name is required")
+    }
+    if data.Effect == "" {
+        return fmt.Errorf("card effect is required")
+    }
+    if data.Cost < 0 && data.Cost != -1 { // -1 is allowed for X costs
+        return fmt.Errorf("invalid card cost: %d", data.Cost)
+    }
+
+    // Validate type-specific requirements
+    switch data.Type {
+    case card.TypeCreature:
+        if data.Attack < 0 {
+            return fmt.Errorf("creature attack cannot be negative")
+        }
+        if data.Defense < 0 {
+            return fmt.Errorf("creature defense cannot be negative")
+        }
+    case card.TypeSpell:
+        if data.TargetType != "" && 
+           data.TargetType != "Creature" && 
+           data.TargetType != "Player" && 
+           data.TargetType != "Any" {
+            return fmt.Errorf("invalid target type: %s", data.TargetType)
+        }
+    }
+
+    return nil
+}
+
+func (g *cardGenerator) GenerateCard(data *card.CardData, outputPath string) error {
+    // Validate card data
+    if err := g.ValidateCard(data); err != nil {
+        return fmt.Errorf("invalid card data: %w", err)
+    }
+
+    // Get appropriate template for card type
+    template, err := templates.NewTemplate(data.Type)
+    if err != nil {
+        return fmt.Errorf("failed to get template: %w", err)
+    }
+
+    // Get base frame
+    frame, err := template.GetFrame(data)
+    if err != nil {
+        return fmt.Errorf("failed to get frame: %w", err)
+    }
+
+    // Create base image
+    bounds := frame.Bounds()
+    img := image.NewRGBA(bounds)
+    draw.Draw(img, bounds, frame, image.Point{}, draw.Over)
+
+    // Process and add art first (so text can overlay if needed)
+    artBounds := template.GetArtBounds()
+    art, err := g.artProc.ProcessArt(data, artBounds)
+    if err != nil {
+        return fmt.Errorf("failed to process art: %w", err)
+    }
+    draw.Draw(img, artBounds, art, image.Point{}, draw.Over)
+
+    // Process and add text
+    textBounds := template.GetTextBounds(data)
+    if err := g.textProc.RenderText(img, data, textBounds); err != nil {
+        return fmt.Errorf("failed to render text: %w", err)
+    }
+
+    // Ensure output directory exists
+    if err := os.MkdirAll(filepath.Dir(outputPath), 0755); err != nil {
+        return fmt.Errorf("failed to create output directory: %w", err)
+    }
+
+    // Save the image
+    f, err := os.Create(outputPath)
+    if err != nil {
+        return fmt.Errorf("failed to create output file: %w", err)
+    }
+    defer f.Close()
+
+    // Use png encoder with best compression
+    encoder := png.Encoder{
+        CompressionLevel: png.BestCompression,
+    }
+    
+    if err := encoder.Encode(f, img); err != nil {
+        return fmt.Errorf("failed to encode image: %w", err)
+    }
+
+    return nil
+}
+
+func (g *cardGenerator) Close() error {
+    // Clean up any resources if needed
+    return nil
 }
