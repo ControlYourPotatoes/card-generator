@@ -7,18 +7,7 @@ import (
     "os"
     "path/filepath"
     "runtime"
-    
-    "github.com/ControlYourPotatoes/card-generator/internal/card"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/layout"
 )
-
-// Template defines what each card template must provide
-type Template interface {
-    // GetFrame should load and return the appropriate frame image
-    GetFrame(data *card.CardData) (image.Image, error)
-    GetTextBounds(data *card.CardData) *layout.TextBounds
-    GetArtBounds() image.Rectangle
-}
 
 // BaseTemplate provides common template functionality
 type BaseTemplate struct {
@@ -37,7 +26,6 @@ func NewBaseTemplate() *BaseTemplate {
 func (b *BaseTemplate) LoadFrame(imageName string) (image.Image, error) {
     framePath := filepath.Join(b.framesPath, imageName)
     
-    // Debug logging
     fmt.Printf("Template directory: %s\n", b.framesPath)
     fmt.Printf("Looking for frame at: %s\n", framePath)
     
@@ -50,19 +38,20 @@ func (b *BaseTemplate) LoadFrame(imageName string) (image.Image, error) {
     return png.Decode(f)
 }
 
-// getTemplateDir returns the absolute path to templates directory
+// GetArtBounds returns the art bounds
+func (b *BaseTemplate) GetArtBounds() image.Rectangle {
+    return b.artBounds
+}
+
+// Helper functions
 func getTemplateDir() string {
-    // Get the current file's location
     _, filename, _, ok := runtime.Caller(0)
     if !ok {
         return ""
     }
-    
-    // Navigate to the images directory
-    return filepath.Join(filepath.Dir(filename), "images")
+    return filepath.Join(filepath.Dir(filepath.Dir(filename)), "images")
 }
 
-// GetDefaultArtBounds returns default art placement bounds
 func GetDefaultArtBounds() image.Rectangle {
     return image.Rect(170, 240, 1330, 1000)
 }

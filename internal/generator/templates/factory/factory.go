@@ -1,17 +1,18 @@
+// internal/generator/template/templates/factory.go
 package templates
 
 import (
     "fmt"
     "github.com/ControlYourPotatoes/card-generator/internal/card"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates/types"
+    "github.com/ControlYourPotatoes/card-generator/internal/generator/template/base"
+    "github.com/ControlYourPotatoes/card-generator/internal/generator/template/types"
 )
 
 // NewTemplate creates the appropriate template type
-func NewTemplate(cardType card.CardType) (Template, error) {
-    // Factory just handles template creation
+func NewTemplate(cardType card.CardType) (base.Template, error) {
     switch cardType {
     case card.TypeCreature:
-        return c.NewCreatureTemplate()
+        return types.NewCreatureTemplate()
     case card.TypeArtifact:
         return types.NewArtifactTemplate()
     case card.TypeSpell:
