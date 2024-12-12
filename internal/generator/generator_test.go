@@ -1,31 +1,53 @@
-// internal/generator/generator_test.go
 package generator
 
 import (
+    "errors"
     "image/png"
     "os"
     "path/filepath"
     "testing"
+    "time"
     
     "github.com/ControlYourPotatoes/card-generator/internal/card"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/art"
+    "github.com/ControlYourPotatoes/card-generator/internal/generator/mocks"
     "github.com/ControlYourPotatoes/card-generator/internal/generator/text"
 )
 
 const testOutputDir = "test_output"
 
-func TestMain(m *testing.M) {
-    cleanup()
-    code := m.Run()
-    cleanup()
-    os.Exit(code)
-}
-
+// cleanup removes the test output directory
 func cleanup() {
     os.RemoveAll(testOutputDir)
 }
 
 func TestCardGeneration(t *testing.T) {
+    // Create test directory
+    if err := os.MkdirAll(testOutputDir, 0755); err != nil {
+        t.Fatalf("Failed to create test output directory: %v", err)
+    }
+    defer cleanup()
+
+    // Create processor instances
+    textProc, err := text.NewTextProcessor()
+    if err != nil {
+        t.Fatalf("Failed to create text processor: %v", err)
+    }
+
+    artProc := mocks.NewMockArtProcessor()
+    
+    // Simulate some network conditions
+    artProc.SimulateNetworkError("Failed Card", errors.New("404 not found"))
+    artProc.FetchDelay = 100 * time.Millisecond
+
+    // Create generator with processors
+    generator, err := NewCardGeneratorWithConfig(&Config{
+        TextProc: textProc,
+        ArtProc:  artProc,
+    })
+    if err != nil {
+        t.Fatalf("Failed to create generator: %v", err)
+    }
+
     tests := []struct {
         name     string
         card     *card.CardData
@@ -56,37 +78,15 @@ func TestCardGeneration(t *testing.T) {
             wantErr: false,
         },
         {
-            name: "Equipment Artifact",
+            name: "Failed Art Fetch",
             card: &card.CardData{
-                Type:        card.TypeArtifact,
-                Name:       "Sword of Glory",
-                Cost:       4,
-                Effect:     "Equip. Equipped creature gets +2/+2.",
-                IsEquipment: true,
+                Type:   card.TypeCreature,
+                Name:   "Failed Card",
+                Cost:   1,
+                Effect: "This card should fail to fetch art.",
             },
-            wantErr: false,
+            wantErr: true,
         },
-    }
-
-    // Create test directory
-    if err := os.MkdirAll(testOutputDir, 0755); err != nil {
-        t.Fatalf("Failed to create test output directory: %v", err)
-    }
-
-    // Create processor instances for testing
-    textProc, err := text.NewTextProcessor()
-    if err != nil {
-        t.Fatalf("Failed to create text processor: %v", err)
-    }
-    artProc := art.NewPlaceholderProcessor()
-
-    // Create generator with processors
-    generator, err := NewCardGeneratorWithConfig(&Config{
-        TextProc: textProc,
-        ArtProc:  artProc,
-    })
-    if err != nil {
-        t.Fatalf("Failed to create generator: %v", err)
     }
 
     for _, tt := range tests {
@@ -100,12 +100,9 @@ func TestCardGeneration(t *testing.T) {
                 return
             }
             
-            if tt.wantErr {
-                return
+            if !tt.wantErr {
+                validateOutputFile(t, outputPath)
             }
-            
-            // Verify file exists and can be opened
-            validateOutputFile(t, outputPath)
         })
     }
 }
@@ -118,14 +115,12 @@ func validateOutputFile(t *testing.T, path string) {
     }
     defer f.Close()
 
-    // Try to decode the image to verify it's valid
     img, err := png.Decode(f)
     if err != nil {
         t.Errorf("Failed to decode output image: %v", err)
         return
     }
 
-    // Verify dimensions
     bounds := img.Bounds()
     if bounds.Dx() != 1500 || bounds.Dy() != 2100 {
         t.Errorf("Incorrect image dimensions: got %dx%d, want 1500x2100",
