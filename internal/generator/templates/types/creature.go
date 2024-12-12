@@ -1,34 +1,36 @@
-package cardtypes
+package types
 
 import (
     "image"
-    "path/filepath"
     "strings"
 
     "github.com/ControlYourPotatoes/card-generator/internal/card"
     "github.com/ControlYourPotatoes/card-generator/internal/generator/layout"
+    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates"
 )
 
 type CreatureTemplate struct {
-    framesPath string
-    artBounds  image.Rectangle
+    *templates.BaseTemplate
 }
 
 func NewCreatureTemplate() (*CreatureTemplate, error) {
     return &CreatureTemplate{
-        framesPath: filepath.Join("internal", "generator", "templates", "images"),
-        artBounds: image.Rect(170, 240, 1330, 1000), // Default art bounds
+        BaseTemplate: templates.NewBaseTemplate(),
     }, nil
 }
 
+// GetFrame implements Template interface
 func (t *CreatureTemplate) GetFrame(data *card.CardData) (image.Image, error) {
-    framePath := filepath.Join(t.framesPath, "BaseCreature.png")
+    // Determine which frame to use
+    var frameName string
     if t.isSpecialFrame(data) {
-        framePath = filepath.Join(t.framesPath, "SpecialCreatureWithStats.png")
+        frameName = "SpecialCreatureWithStats.png"
+    } else {
+        frameName = "BaseCreature.png"
     }
     
-    // Load the frame (this function needs to be accessible)
-    return LoadFrame(framePath)
+    // Use base template to load the frame
+    return t.LoadFrame(frameName)
 }
 
 func (t *CreatureTemplate) GetTextBounds(data *card.CardData) *layout.TextBounds {
@@ -53,9 +55,7 @@ func (t *CreatureTemplate) GetTextBounds(data *card.CardData) *layout.TextBounds
     return bounds
 }
 
-func (t *CreatureTemplate) GetArtBounds() image.Rectangle {
-    return t.artBounds
-}
+
 
 func (t *CreatureTemplate) isSpecialFrame(data *card.CardData) bool {
     // Check for special traits or keywords that would trigger special frame

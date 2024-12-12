@@ -2,56 +2,85 @@ package templates
 
 import (
     "image"
-    "image/png"
     "testing"
     "path/filepath"
     "os"
+    "runtime"
 
     "github.com/ControlYourPotatoes/card-generator/internal/card"
     "github.com/ControlYourPotatoes/card-generator/internal/generator/layout"
 )
 
-func init() {
-    // Create the full template directory path
-    templatePath := filepath.Join("internal", "generator", "templates", "images")
-    os.MkdirAll(templatePath, 0755)
-
-    // Create dummy template files for testing
-    dummyFiles := []string{
-        "BaseCreature.png",
-        "BaseArtifact.png",
-        "BaseSpell.png",
-        "BaseIncantation.png",
-        "AnthemBase.png",
-        "SpecialCreatureWithStats.png",
+// getTemplateDir returns the path to the templates directory relative to the test file
+func getTemplateDirTest(t *testing.T) string {
+    // Get the directory containing the current test file
+    _, filename, _, ok := runtime.Caller(0)
+    if !ok {
+        t.Fatal("Could not get current file path")
     }
-
-    for _, file := range dummyFiles {
-        path := filepath.Join(templatePath, file)
-        if _, err := os.Stat(path); os.IsNotExist(err) {
-            // Create a 1x1 pixel dummy PNG file
-            img := image.NewRGBA(image.Rect(0, 0, 1, 1))
-            f, _ := os.Create(path)
-            png.Encode(f, img)
-            f.Close()
+    
+    // Log the test file location for debugging
+    t.Logf("Test file location: %s", filename)
+    
+    // Get the directory containing the test file
+    testDir := filepath.Dir(filename)
+    t.Logf("Test directory: %s", testDir)
+    
+    // Template directory should be at images/
+    templateDir := filepath.Join(testDir, "images")
+    
+    // Check if directory exists and log the result
+    if _, err := os.Stat(templateDir); os.IsNotExist(err) {
+        t.Logf("Warning: Template directory not found at: %s", templateDir)
+        
+        // Try to list parent directory contents for debugging
+        parentDir := filepath.Dir(testDir)
+        entries, err := os.ReadDir(parentDir)
+        if err == nil {
+            t.Log("Contents of parent directory:")
+            for _, entry := range entries {
+                t.Logf("  - %s", entry.Name())
+            }
+        }
+    } else {
+        // List contents of template directory
+        entries, err := os.ReadDir(templateDir)
+        if err == nil {
+            t.Log("Contents of template directory:")
+            for _, entry := range entries {
+                t.Logf("  - %s", entry.Name())
+            }
         }
     }
+    
+    return templateDir
 }
 
 func TestTemplateCreation(t *testing.T) {
+    templatesPath := getTemplateDir(t)
+    
     tests := []struct {
-        name     string
-        cardType card.CardType
+        name      string
+        cardType  card.CardType
+        imageName string
     }{
-        {"Creature", card.TypeCreature},
-        {"Artifact", card.TypeArtifact},
-        {"Spell", card.TypeSpell},
-        {"Incantation", card.TypeIncantation},
-        {"Anthem", card.TypeAnthem},
+        {"Creature", card.TypeCreature, "BaseCreature.png"},
+        {"Artifact", card.TypeArtifact, "BaseArtifact.png"},
+        {"Spell", card.TypeSpell, "BaseSpell.png"},
+        {"Incantation", card.TypeIncantation, "BaseIncantation.png"},
+        {"Anthem", card.TypeAnthem, "BaseAnthem.png"},
     }
 
     for _, tt := range tests {
         t.Run(tt.name, func(t *testing.T) {
+            imagePath := filepath.Join(templatesPath, tt.imageName)
+            t.Logf("Looking for template image at: %s", imagePath)
+            
+            // Test if file exists before trying to load it
+            if _, err := os.Stat(imagePath); os.IsNotExist(err) {
+                t.Fatalf("Template image not found at: %s", imagePath)
+            }
+            
             template, err := NewTemplate(tt.cardType)
             if err != nil {
                 t.Fatalf("Failed to create template: %v", err)
@@ -59,6 +88,20 @@ func TestTemplateCreation(t *testing.T) {
             if template == nil {
                 t.Error("Template should not be nil")
             }
+
+            frame, err := LoadFrame(imagePath)
+            if err != nil {
+                t.Fatalf("Failed to load frame from %s: %v", imagePath, err)
+            }
+
+            bounds := frame.Bounds()
+            if bounds.Empty() {
+                t.Error("Frame bounds should not be empty")
+            }
+
+            // Log successful frame load
+            t.Logf("Successfully loaded frame for %s with dimensions %dx%d",
+                tt.name, bounds.Dx(), bounds.Dy())
         })
     }
 }

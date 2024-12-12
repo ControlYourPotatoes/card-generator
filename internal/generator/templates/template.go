@@ -5,29 +5,18 @@ import (
     "image"
     "image/png"
     "os"
-
+    "path/filepath"
+    "runtime"
+    
     "github.com/ControlYourPotatoes/card-generator/internal/card"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates/cardtypes"
     "github.com/ControlYourPotatoes/card-generator/internal/generator/layout"
 )
 
-// Card dimensions from CardConjurer template
-const (
-    CardWidth  = 1500
-    CardHeight = 2100
-    MarginX    = 66
-    MarginY    = 60
-)
-
-// Template interface defines what each card template must provide
+// Template defines what each card template must provide
 type Template interface {
-    // GetFrame returns the appropriate frame image for the card
+    // GetFrame should load and return the appropriate frame image
     GetFrame(data *card.CardData) (image.Image, error)
-
-    // GetTextBounds returns text positioning for the card
     GetTextBounds(data *card.CardData) *layout.TextBounds
-
-    // GetArtBounds returns where card art should be placed
     GetArtBounds() image.Rectangle
 }
 
@@ -37,41 +26,43 @@ type BaseTemplate struct {
     artBounds  image.Rectangle
 }
 
-// Load a frame image from the templates directory
-func LoadFrame(path string) (image.Image, error) {
-    f, err := os.Open(path)
+func NewBaseTemplate() *BaseTemplate {
+    return &BaseTemplate{
+        framesPath: getTemplateDir(),
+        artBounds:  GetDefaultArtBounds(),
+    }
+}
+
+// LoadFrame is a helper function for loading frame images
+func (b *BaseTemplate) LoadFrame(imageName string) (image.Image, error) {
+    framePath := filepath.Join(b.framesPath, imageName)
+    
+    // Debug logging
+    fmt.Printf("Template directory: %s\n", b.framesPath)
+    fmt.Printf("Looking for frame at: %s\n", framePath)
+    
+    f, err := os.Open(framePath)
     if err != nil {
         return nil, fmt.Errorf("failed to open frame: %w", err)
     }
     defer f.Close()
 
-    img, err := png.Decode(f)
-    if err != nil {
-        return nil, fmt.Errorf("failed to decode frame: %w", err)
-    }
-
-    return img, nil
+    return png.Decode(f)
 }
 
-// Default art bounds used by most cards
+// getTemplateDir returns the absolute path to templates directory
+func getTemplateDir() string {
+    // Get the current file's location
+    _, filename, _, ok := runtime.Caller(0)
+    if !ok {
+        return ""
+    }
+    
+    // Navigate to the images directory
+    return filepath.Join(filepath.Dir(filename), "images")
+}
+
+// GetDefaultArtBounds returns default art placement bounds
 func GetDefaultArtBounds() image.Rectangle {
     return image.Rect(170, 240, 1330, 1000)
-}
-
-// NewTemplate creates appropriate template for card type
-func NewTemplate(cardType card.CardType) (Template, error) {
-    switch cardType {
-    case card.TypeCreature:
-        return cardtypes.NewCreatureTemplate()
-    case card.TypeArtifact:
-        return cardtypes.NewArtifactTemplate()
-    case card.TypeSpell:
-        return cardtypes.NewSpellTemplate()
-    case card.TypeIncantation:
-        return cardtypes.NewIncantationTemplate()
-    case card.TypeAnthem:
-        return cardtypes.NewAnthemTemplate()
-    default:
-        return nil, fmt.Errorf("unsupported card type: %s", cardType)
-    }
 }
