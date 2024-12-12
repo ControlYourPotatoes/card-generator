@@ -1,27 +1,36 @@
-// internal/generator/template/templates/factory.go
-package templates
+// templates/factory/factory.go
+package factory
 
 import (
     "fmt"
     "github.com/ControlYourPotatoes/card-generator/internal/card"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/template/base"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/template/types"
+    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates/base"
+    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates/types"
 )
 
 // NewTemplate creates the appropriate template type
 func NewTemplate(cardType card.CardType) (base.Template, error) {
+    var template base.Template
+    var err error
+
     switch cardType {
     case card.TypeCreature:
-        return types.NewCreatureTemplate()
+        template, err = types.NewCreatureTemplate()
     case card.TypeArtifact:
-        return types.NewArtifactTemplate()
+        template, err = types.NewArtifactTemplate()
     case card.TypeSpell:
-        return types.NewSpellTemplate()
+        template, err = types.NewSpellTemplate()
     case card.TypeIncantation:
-        return types.NewIncantationTemplate()
+        template, err = types.NewIncantationTemplate()
     case card.TypeAnthem:
-        return types.NewAnthemTemplate()
+        template, err = types.NewAnthemTemplate()
     default:
         return nil, fmt.Errorf("unsupported card type: %s", cardType)
     }
+
+    if err != nil {
+        return nil, fmt.Errorf("failed to create template: %w", err)
+    }
+
+    return template, nil
 }

@@ -6,30 +6,28 @@ import (
 
     "github.com/ControlYourPotatoes/card-generator/internal/card"
     "github.com/ControlYourPotatoes/card-generator/internal/generator/layout"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates"
+    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates/base"
 )
 
 type CreatureTemplate struct {
-    *templates.BaseTemplate
+    base.BaseTemplate  // Embed the base template directly
 }
 
 func NewCreatureTemplate() (*CreatureTemplate, error) {
+    base := base.NewBaseTemplate()
     return &CreatureTemplate{
-        BaseTemplate: templates.NewBaseTemplate(),
+        BaseTemplate: *base,  // Note the dereference here
     }, nil
 }
 
-// GetFrame implements Template interface
+// GetFrame implements the Template interface
 func (t *CreatureTemplate) GetFrame(data *card.CardData) (image.Image, error) {
-    // Determine which frame to use
     var frameName string
     if t.isSpecialFrame(data) {
         frameName = "SpecialCreatureWithStats.png"
     } else {
         frameName = "BaseCreature.png"
     }
-    
-    // Use base template to load the frame
     return t.LoadFrame(frameName)
 }
 
