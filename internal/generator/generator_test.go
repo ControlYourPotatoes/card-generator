@@ -13,11 +13,27 @@ import (
     "github.com/ControlYourPotatoes/card-generator/internal/generator/text"
 )
 
-const testOutputDir = "test_output"
+const testOutputDir = "temp_output"
 
 // cleanup removes the test output directory
 func cleanup() {
-    os.RemoveAll(testOutputDir)
+    // Check if directory exists first
+    if _, err := os.Stat(testOutputDir); os.IsNotExist(err) {
+        return // Directory doesn't exist, nothing to clean
+    }
+
+    // Read directory entries
+    entries, err := os.ReadDir(testOutputDir)
+    if err != nil {
+        return // Can't read directory, skip cleanup
+    }
+
+    // Remove only .png files
+    for _, entry := range entries {
+        if filepath.Ext(entry.Name()) == ".png" {
+            os.Remove(filepath.Join(testOutputDir, entry.Name()))
+        }
+    }
 }
 
 func TestCardGeneration(t *testing.T) {
@@ -25,7 +41,7 @@ func TestCardGeneration(t *testing.T) {
     if err := os.MkdirAll(testOutputDir, 0755); err != nil {
         t.Fatalf("Failed to create test output directory: %v", err)
     }
-    defer cleanup()
+    cleanup()
 
     // Create processor instances
     textProc, err := text.NewTextProcessor()

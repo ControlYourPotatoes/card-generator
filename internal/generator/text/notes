@@ -1,0 +1,28 @@
+```
+internal/
+└── generator/
+    └── text/
+        ├── manager/
+        │   ├── font.go        # Font management
+        │   ├── style.go       # Style definitions and management
+        │   ├── layout.go      # Layout engine
+        │   └── card.go        # Main card text manager
+        ├── render/
+        │   ├── renderer.go    # Main renderer using gg
+        │   ├── effects.go     # Text effects implementation
+        │   └── context.go     # Drawing context management
+        ├── processor/
+        │   ├── title.go       # Title processing
+        │   ├── effect.go      # Effect text processing
+        │   ├── stats.go       # Stats processing
+        │   └── common.go      # Shared processing utilities
+        ├── types/
+        │   ├── bounds.go      # Text bounds and positioning
+        │   ├── style.go       # Style types and constants
+        │   └── elements.go    # Card element definitions
+        ├── config/
+        │   ├── fonts.go       # Font configurations
+        │   ├── styles.go      # Default styles
+        │   └── layout.go      # Layout configurations
+        └── text.go           # Package entry point and interfaces
+```
