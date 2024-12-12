@@ -7,6 +7,7 @@ import (
     "github.com/ControlYourPotatoes/card-generator/internal/card"
     "github.com/ControlYourPotatoes/card-generator/internal/generator/layout"
     "github.com/ControlYourPotatoes/card-generator/internal/generator/templates/base"
+    
 )
 
 type CreatureTemplate struct {

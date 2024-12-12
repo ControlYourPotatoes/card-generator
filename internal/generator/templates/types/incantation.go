@@ -6,16 +6,16 @@ import (
 
     "github.com/ControlYourPotatoes/card-generator/internal/card"
     "github.com/ControlYourPotatoes/card-generator/internal/generator/layout"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates"
+    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates/base"
 )
 
 type IncantationTemplate struct {
-    *templates.BaseTemplate
+    *base.BaseTemplate
 }
 
 func NewIncantationTemplate() (*IncantationTemplate, error) {
     return &IncantationTemplate{
-        BaseTemplate: templates.NewBaseTemplate(),
+        BaseTemplate: base.NewBaseTemplate(),
     }, nil
 }
 

@@ -1,25 +1,29 @@
 package types
 
 import (
-    "image"
+	"image"
 
-    "github.com/ControlYourPotatoes/card-generator/internal/card"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/layout"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates"
+	"github.com/ControlYourPotatoes/card-generator/internal/card"
+	"github.com/ControlYourPotatoes/card-generator/internal/generator/layout"
+	"github.com/ControlYourPotatoes/card-generator/internal/generator/templates/base"
 )
 
 type ArtifactTemplate struct {
-    *templates.BaseTemplate
+    base.BaseTemplate
 }
 
 func NewArtifactTemplate() (*ArtifactTemplate, error) {
+    base := base.NewBaseTemplate()
     return &ArtifactTemplate{
-        BaseTemplate: templates.NewBaseTemplate(),
-    }, nil
-}
+        BaseTemplate: *base,
+        }, nil
+    }
 
 func (t *ArtifactTemplate) GetFrame(data *card.CardData) (image.Image, error) {
-    return t.LoadFrame("BaseArtifact.png")
+        var frame string
+        
+        frame = "BaseArtifact.png"
+    return t.LoadFrame(frame)
 }
 
 func (t *ArtifactTemplate) GetTextBounds(data *card.CardData) *layout.TextBounds {

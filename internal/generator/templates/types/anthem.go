@@ -5,16 +5,16 @@ import (
 
     "github.com/ControlYourPotatoes/card-generator/internal/card"
     "github.com/ControlYourPotatoes/card-generator/internal/generator/layout"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates"
+    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates/base"
 )
 
 type AnthemTemplate struct {
-    *templates.BaseTemplate
+    *base.BaseTemplate
 }
 
 func NewAnthemTemplate() (*AnthemTemplate, error) {
     return &AnthemTemplate{
-        BaseTemplate: templates.NewBaseTemplate(),
+        BaseTemplate: base.NewBaseTemplate(),
     }, nil
 }
 
