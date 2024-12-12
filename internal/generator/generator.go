@@ -11,7 +11,7 @@ import (
 
     "github.com/ControlYourPotatoes/card-generator/internal/card"
     "github.com/ControlYourPotatoes/card-generator/internal/generator/art"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates"
+    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates/factory"
     "github.com/ControlYourPotatoes/card-generator/internal/generator/text"
 )
 
@@ -124,7 +124,7 @@ func (g *cardGenerator) GenerateCard(data *card.CardData, outputPath string) err
     }
 
     // Get appropriate template for card type
-    template, err := templates.NewTemplate(data.Type)
+    template, err := factory.NewTemplate(data.Type)
     if err != nil {
         return fmt.Errorf("failed to get template: %w", err)
     }

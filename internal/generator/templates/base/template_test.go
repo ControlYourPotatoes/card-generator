@@ -2,265 +2,144 @@ package base
 
 import (
     "image"
+    "image/png"
     "testing"
     "path/filepath"
     "os"
-    "runtime"
-
-    "github.com/ControlYourPotatoes/card-generator/internal/card"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/layout"
 )
 
-// getTemplateDir returns the path to the templates directory relative to the test file
-func getTemplateDirTest(t *testing.T) string {
-    // Get the directory containing the current test file
-    _, filename, _, ok := runtime.Caller(0)
-    if !ok {
-        t.Fatal("Could not get current file path")
+func TestNewBaseTemplate(t *testing.T) {
+    template := NewBaseTemplate()
+    
+    if template == nil {
+        t.Fatal("NewBaseTemplate returned nil")
     }
-    
-    // Log the test file location for debugging
-    t.Logf("Test file location: %s", filename)
-    
-    // Get the directory containing the test file
-    testDir := filepath.Dir(filename)
-    t.Logf("Test directory: %s", testDir)
-    
-    // Template directory should be at images/
-    templateDir := filepath.Join(testDir, "images")
-    
-    // Check if directory exists and log the result
-    if _, err := os.Stat(templateDir); os.IsNotExist(err) {
-        t.Logf("Warning: Template directory not found at: %s", templateDir)
-        
-        // Try to list parent directory contents for debugging
-        parentDir := filepath.Dir(testDir)
-        entries, err := os.ReadDir(parentDir)
-        if err == nil {
-            t.Log("Contents of parent directory:")
-            for _, entry := range entries {
-                t.Logf("  - %s", entry.Name())
-            }
-        }
-    } else {
-        // List contents of template directory
-        entries, err := os.ReadDir(templateDir)
-        if err == nil {
-            t.Log("Contents of template directory:")
-            for _, entry := range entries {
-                t.Logf("  - %s", entry.Name())
-            }
-        }
+
+    if template.framesPath == "" {
+        t.Error("template frames path is empty")
     }
-    
-    return templateDir
+
+    if template.artBounds.Empty() {
+        t.Error("template art bounds are empty")
+    }
+
+    expectedArtBounds := GetDefaultArtBounds()
+    if template.artBounds != expectedArtBounds {
+        t.Errorf("art bounds = %v, want %v", template.artBounds, expectedArtBounds)
+    }
 }
 
-func TestTemplateCreation(t *testing.T) {
-    templatesPath := getTemplateDir(t)
+func TestLoadFrame(t *testing.T) {
+    template := NewBaseTemplate()
     
+    // Create a temporary test image
+    tmpDir := t.TempDir()
+    testImagePath := filepath.Join(tmpDir, "test.png")
+    
+    // Create a 1x1 black PNG for testing
+    f, err := os.Create(testImagePath)
+    if err != nil {
+        t.Fatalf("Failed to create test image: %v", err)
+    }
+    defer f.Close()
+    
+    img := image.NewRGBA(image.Rect(0, 0, 1, 1))
+    if err := png.Encode(f, img); err != nil {
+        t.Fatalf("Failed to encode test image: %v", err)
+    }
+
+    // Test cases
     tests := []struct {
         name      string
-        cardType  card.CardType
         imageName string
-    }{
-        {"Creature", card.TypeCreature, "BaseCreature.png"},
-        {"Artifact", card.TypeArtifact, "BaseArtifact.png"},
-        {"Spell", card.TypeSpell, "BaseSpell.png"},
-        {"Incantation", card.TypeIncantation, "BaseIncantation.png"},
-        {"Anthem", card.TypeAnthem, "BaseAnthem.png"},
-    }
-
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            imagePath := filepath.Join(templatesPath, tt.imageName)
-            t.Logf("Looking for template image at: %s", imagePath)
-            
-            // Test if file exists before trying to load it
-            if _, err := os.Stat(imagePath); os.IsNotExist(err) {
-                t.Fatalf("Template image not found at: %s", imagePath)
-            }
-            
-            template, err := NewTemplate(tt.cardType)
-            if err != nil {
-                t.Fatalf("Failed to create template: %v", err)
-            }
-            if template == nil {
-                t.Error("Template should not be nil")
-            }
-
-            frame, err := LoadFrame(imagePath)
-            if err != nil {
-                t.Fatalf("Failed to load frame from %s: %v", imagePath, err)
-            }
-
-            bounds := frame.Bounds()
-            if bounds.Empty() {
-                t.Error("Frame bounds should not be empty")
-            }
-
-            // Log successful frame load
-            t.Logf("Successfully loaded frame for %s with dimensions %dx%d",
-                tt.name, bounds.Dx(), bounds.Dy())
-        })
-    }
-}
-
-func TestFrameLoading(t *testing.T) {
-    tests := []struct {
-        name     string
-        cardType card.CardType
-        cardData *card.CardData
-        wantFile string
+        wantErr   bool
     }{
         {
-            name:     "Basic Creature",
-            cardType: card.TypeCreature,
-            cardData: &card.CardData{
-                Type:    card.TypeCreature,
-                Name:    "Test Creature",
-                Cost:    1,
-                Effect:  "Test effect",
-                Attack:  1,
-                Defense: 1,
-            },
-            wantFile: "BaseCreature.png",
+            name:      "Valid image",
+            imageName: "test.png",
+            wantErr:   false,
         },
         {
-            name:     "Basic Artifact",
-            cardType: card.TypeArtifact,
-            cardData: &card.CardData{
-                Type:   card.TypeArtifact,
-                Name:   "Test Artifact",
-                Cost:   1,
-                Effect: "Test effect",
-            },
-            wantFile: "BaseArtifact.png",
+            name:      "Non-existent image",
+            imageName: "nonexistent.png",
+            wantErr:   true,
         },
     }
 
+    // Override template's frames path for testing
+    template.framesPath = tmpDir
+
     for _, tt := range tests {
         t.Run(tt.name, func(t *testing.T) {
-            template, err := NewTemplate(tt.cardType)
-            if err != nil {
-                t.Fatalf("Failed to create template: %v", err)
+            frame, err := template.LoadFrame(tt.imageName)
+            
+            if tt.wantErr {
+                if err == nil {
+                    t.Error("expected error, got nil")
+                }
+                return
             }
-
-            frame, err := template.GetFrame(tt.cardData)
+            
             if err != nil {
-                t.Fatalf("Failed to get frame: %v", err)
+                t.Errorf("unexpected error: %v", err)
             }
+            
             if frame == nil {
-                t.Error("Frame should not be nil")
-            }
-
-            // Verify the frame dimensions
-            bounds := frame.Bounds()
-            if bounds.Empty() {
-                t.Error("Frame bounds should not be empty")
+                t.Error("frame is nil")
             }
         })
     }
 }
 
-func TestTextBounds(t *testing.T) {
-    template, err := NewTemplate(card.TypeCreature)
-    if err != nil {
-        t.Fatalf("Failed to create template: %v", err)
+func TestGetTemplateDir(t *testing.T) {
+    dir := getTemplateDir()
+    
+    if dir == "" {
+        t.Error("getTemplateDir returned empty string")
     }
 
-    cardData := &card.CardData{
-        Type:    card.TypeCreature,
-        Name:    "Test Creature",
-        Cost:    1,
-        Effect:  "Test effect",
-        Attack:  1,
-        Defense: 1,
-    }
-
-    bounds := template.GetTextBounds(cardData)
-    if bounds == nil {
-        t.Fatal("Bounds should not be nil")
-    }
-
-    // Expected bounds for a creature card
-    expectedBounds := &layout.TextBounds{
-        Name: layout.TextConfig{
-            Bounds:    image.Rect(125, 90, 1375, 170),  // Updated to match actual values
-            FontSize:  72,
-            Alignment: "center",
-        },
-        Effect: layout.TextConfig{
-            Bounds:    image.Rect(160, 1250, 1340, 1750),
-            FontSize:  48,
-            Alignment: "left",
-        },
-        Stats: &layout.StatsConfig{
-            Left: layout.TextConfig{
-                Bounds:    image.Rect(130, 1820, 230, 1900),
-                FontSize:  72,
-                Alignment: "center",
-            },
-            Right: layout.TextConfig{
-                Bounds:    image.Rect(1270, 1820, 1370, 1900),
-                FontSize:  72,
-                Alignment: "center",
-            },
-        },
-    }
-
-    // Compare bounds
-    if bounds.Effect.Bounds != expectedBounds.Effect.Bounds {
-        t.Errorf("Effect bounds = %v, want %v", bounds.Effect.Bounds, expectedBounds.Effect.Bounds)
-    }
-    if bounds.Name.Bounds != expectedBounds.Name.Bounds {
-        t.Errorf("Name bounds = %v, want %v", bounds.Name.Bounds, expectedBounds.Name.Bounds)
-    }
-    if bounds.Stats == nil {
-        t.Error("Stats bounds should not be nil")
-    } else if bounds.Stats.Left.Bounds != expectedBounds.Stats.Left.Bounds {
-        t.Errorf("Stats left bounds = %v, want %v", bounds.Stats.Left.Bounds, expectedBounds.Stats.Left.Bounds)
+    // Verify the directory structure
+    if _, err := os.Stat(dir); os.IsNotExist(err) {
+        t.Logf("Template directory not found at: %s", dir)
+        t.Log("Note: This is not necessarily an error if running tests before directory setup")
     }
 }
 
-func TestCreatureStats(t *testing.T) {
-    template, err := NewTemplate(card.TypeCreature)
-    if err != nil {
-        t.Fatalf("Failed to create template: %v", err)
+func TestGetDefaultArtBounds(t *testing.T) {
+    bounds := GetDefaultArtBounds()
+    
+    if bounds.Empty() {
+        t.Error("default art bounds are empty")
     }
 
-    cardData := &card.CardData{
-        Type:    card.TypeCreature,
-        Name:    "Test Creature",
-        Attack:  1,
-        Defense: 1,
+    // Test specific dimensions
+    expectedBounds := image.Rect(170, 240, 1330, 1000)
+    if bounds != expectedBounds {
+        t.Errorf("art bounds = %v, want %v", bounds, expectedBounds)
     }
 
-    bounds := template.GetTextBounds(cardData)
-    if bounds.Stats == nil {
-        t.Error("Creature template should include stat bounds")
-        return
+    // Verify bounds are reasonable
+    width := bounds.Dx()
+    height := bounds.Dy()
+    
+    if width <= 0 {
+        t.Error("art bounds width should be positive")
     }
-
-    // Check stat positions
-    if bounds.Stats.Left.Bounds.Empty() {
-        t.Error("Left stat bounds should not be empty")
+    if height <= 0 {
+        t.Error("art bounds height should be positive")
     }
-    if bounds.Stats.Right.Bounds.Empty() {
-        t.Error("Right stat bounds should not be empty")
+}
+
+func TestGetArtBounds(t *testing.T) {
+    template := NewBaseTemplate()
+    bounds := template.GetArtBounds()
+    
+    if bounds.Empty() {
+        t.Error("GetArtBounds returned empty bounds")
     }
-
-    // Verify stat positions are within card bounds
-    maxWidth := 1500  // Card width
-    maxHeight := 2100 // Card height
-
-    if bounds.Stats.Left.Bounds.Max.X > maxWidth || 
-       bounds.Stats.Left.Bounds.Max.Y > maxHeight {
-        t.Error("Left stat bounds exceed card dimensions")
-    }
-
-    if bounds.Stats.Right.Bounds.Max.X > maxWidth || 
-       bounds.Stats.Right.Bounds.Max.Y > maxHeight {
-        t.Error("Right stat bounds exceed card dimensions")
+    
+    expectedBounds := GetDefaultArtBounds()
+    if bounds != expectedBounds {
+        t.Errorf("art bounds = %v, want %v", bounds, expectedBounds)
     }
 }
