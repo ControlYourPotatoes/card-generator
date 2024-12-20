@@ -1,17 +1,18 @@
 package rules
 
-import "../types"
+import (
+    
+    "github.com/ControlYourPotatoes/card-generator/internal/analysis/types"
+)
 
 // TribalTypes defines all supported tribal types
 var TribalTypes = []string{
     "Zombie",
     "Dragon",
-    "Warrior",
-    "Beast",
-    "Angel",
+    "Human",
     "Demon",
-    "Elemental",
-    "Knight",
+    "Goblin",
+    "Demon",
 }
 
 // TribalRules defines rules for tribal detection
@@ -21,6 +22,7 @@ var TribalRules = []types.TagRule{
         Category: types.TagTribal,
         Patterns: []types.Pattern{
             {Value: `other .* you control get`, Type: types.RegexMatch},
+			{Value: `.* you control get`, Type: types.RegexMatch},
             {Value: `creatures you control of the chosen type`, Type: types.ExactMatch},
         },
         Weight:      3,

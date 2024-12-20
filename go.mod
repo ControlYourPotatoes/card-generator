@@ -7,4 +7,7 @@ require (
 	golang.org/x/image v0.22.0
 )
 
-require github.com/fogleman/gg v1.3.0 // indirect
+require (
+	github.com/dlclark/regexp2 v1.11.4 // indirect
+	github.com/fogleman/gg v1.3.0 // indirect
+)

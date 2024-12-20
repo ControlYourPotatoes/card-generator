@@ -16,6 +16,7 @@ type CardData struct {
     Timing      string            `json:"timing,omitempty"`
     Continuous  bool              `json:"continuous,omitempty"`
     Keywords    []string          `json:"keywords,omitempty"`
+    Tags       []string          `json:"tags,omitempty"`
     CreatedAt   time.Time         `json:"created_at"`
     UpdatedAt   time.Time         `json:"updated_at"`
     Metadata    map[string]string `json:"metadata,omitempty"`

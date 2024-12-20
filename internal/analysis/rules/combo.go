@@ -1,7 +1,9 @@
 package rules
 
-import "../types"
-
+import (
+    
+    "github.com/ControlYourPotatoes/card-generator/internal/analysis/types"
+)
 // ComboPatterns defines patterns that indicate combo potential
 var ComboPatterns = map[string][]types.Pattern{
     "INFINITE_COMBO": {

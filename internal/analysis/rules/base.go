@@ -1,6 +1,9 @@
 package rules
 
-import "../types"
+import (
+    
+    "github.com/ControlYourPotatoes/card-generator/internal/analysis/types"
+)
 
 // BaseRules contains the fundamental rules for tag generation
 var BaseRules = []types.TagRule{

@@ -3,7 +3,8 @@ package tagger
 import (
     "regexp"
     "strings"
-    "./types"
+    
+	"github.com/ControlYourPotatoes/card-generator/internal/analysis/types"
 )
 
 // EffectDetector handles complex effect analysis

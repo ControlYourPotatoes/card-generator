@@ -1,12 +1,13 @@
 package tagger
 
 import (
-    "regexp"
     "strings"
     "sync"
+    "fmt"
     
-    "./rules"
-    "./types"
+    "github.com/ControlYourPotatoes/card-generator/internal/core/card"
+    "github.com/ControlYourPotatoes/card-generator/internal/analysis/types"
+    "github.com/ControlYourPotatoes/card-generator/internal/analysis/rules"
     "github.com/dlclark/regexp2"
 )
 
@@ -16,7 +17,7 @@ type CardTagger struct {
     regexCache   map[string]*regexp2.Regexp
     cacheMutex   sync.RWMutex
     manualTags   map[string][]types.Tag
-    tagValidator *TagValidator
+    tagValidator *types.TagValidator
 }
 
 // NewCardTagger creates a new instance of CardTagger
@@ -24,7 +25,7 @@ func NewCardTagger() *CardTagger {
     tagger := &CardTagger{
         regexCache: make(map[string]*regexp2.Regexp),
         manualTags: make(map[string][]types.Tag),
-        tagValidator: NewTagValidator(),
+        tagValidator: types.NewTagValidator(),
     }
     tagger.initializeRules()
     return tagger
@@ -47,10 +48,16 @@ func (ct *CardTagger) initializeRules() {
 }
 
 // GenerateTags generates tags for a card
-func (ct *CardTagger) GenerateTags(card interface{}) ([]types.Tag, error) {
-    cardData, ok := card.(*types.CardData)
-    if !ok {
-        return nil, fmt.Errorf("invalid card data type")
+func (ct *CardTagger) GenerateTags(c interface{}) ([]types.Tag, error) {
+    var cardData *card.CardData
+    
+    switch v := c.(type) {
+    case *card.CardData:
+        cardData = v
+    case card.Card:
+        cardData = v.ToData()
+    default:
+        return nil, fmt.Errorf("invalid card type: must be *card.CardData or card.Card")
     }
 
     var tags []types.Tag
@@ -60,7 +67,7 @@ func (ct *CardTagger) GenerateTags(card interface{}) ([]types.Tag, error) {
     tags = append(tags, basicTags...)
     
     // Generate tribal tags
-    tribalTags := rules.GenerateTribalTags(cardData.Type, cardData.Effect)
+    tribalTags := rules.GenerateTribalTags(string(cardData.Type), cardData.Effect)
     tags = append(tags, tribalTags...)
     
     // Generate combo tags
@@ -72,7 +79,7 @@ func (ct *CardTagger) GenerateTags(card interface{}) ([]types.Tag, error) {
     tags = append(tags, ruleTags...)
     
     // Add any manual tags
-    if manualTags, exists := ct.manualTags[cardData.ID]; exists {
+    if manualTags, exists := ct.manualTags[cardData.Name]; exists {
         tags = append(tags, manualTags...)
     }
     
@@ -85,8 +92,9 @@ func (ct *CardTagger) GenerateTags(card interface{}) ([]types.Tag, error) {
     return tags, nil
 }
 
+
 // generateBasicTags creates basic tags based on card properties
-func (ct *CardTagger) generateBasicTags(card *types.CardData) []types.Tag {
+func (ct *CardTagger) generateBasicTags(card *card.CardData) []types.Tag {
     var tags []types.Tag
     
     // Add type-based tag
@@ -110,7 +118,7 @@ func (ct *CardTagger) generateBasicTags(card *types.CardData) []types.Tag {
 }
 
 // applyRules applies all pattern-based rules to generate tags
-func (ct *CardTagger) applyRules(card *types.CardData) []types.Tag {
+func (ct *CardTagger) applyRules(card *card.CardData) []types.Tag {
     var tags []types.Tag
     
     for _, rule := range ct.rules {
@@ -127,7 +135,7 @@ func (ct *CardTagger) applyRules(card *types.CardData) []types.Tag {
 }
 
 // ruleMatches checks if a card matches a specific rule
-func (ct *CardTagger) ruleMatches(card *types.CardData, rule types.TagRule) bool {
+func (ct *CardTagger) ruleMatches(card *card.CardData, rule types.TagRule) bool {
     for _, pattern := range rule.Patterns {
         matched := false
         
@@ -201,7 +209,7 @@ func (ct *CardTagger) checkProximity(pattern, text string, maxDistance int) bool
 }
 
 // checkConditions verifies if a card meets all conditions
-func (ct *CardTagger) checkConditions(card *types.CardData, conditions []types.Condition) bool {
+func (ct *CardTagger) checkConditions(card *card.CardData, conditions []types.Condition) bool {
     for _, condition := range conditions {
         switch condition.Type {
         case types.IsType:
@@ -264,7 +272,7 @@ func (ct *CardTagger) categorizeCost(cost int) string {
     }
 }
 
-func (ct *CardTagger) hasKeyword(card *types.CardData, keyword string) bool {
+func (ct *CardTagger) hasKeyword(card *card.CardData, keyword string) bool {
     return strings.Contains(
         strings.ToLower(card.Effect),
         strings.ToLower(keyword),
