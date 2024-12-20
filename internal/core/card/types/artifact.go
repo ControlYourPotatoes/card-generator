@@ -1,7 +1,6 @@
 package types
 
 import (
-	"strings"
 
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card/validation"
@@ -24,13 +23,12 @@ func (a *Artifact) Validate() *validation.ValidationError {
         return err
     }
 
-    if a.IsEquipment && !strings.Contains(strings.ToLower(a.Effect), "equip") {
-        return &validation.ValidationError{
-            Type:    validation.ErrorTypeInvalid,
-            Message: "equipment artifact must contain equip effect",
-            Field:   "effect",
-        }
+    // Validate artifact-specific properties
+    if err := validation.ValidateArtifact(a.IsEquipment, a.Effect); err != nil {
+        return err
     }
+
+
     return nil
 }
 

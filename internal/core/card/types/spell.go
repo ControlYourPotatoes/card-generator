@@ -23,20 +23,11 @@ func (s *Spell) Validate() *validation.ValidationError {
         return err
     }
 
-    if s.TargetType != "" {
-        validTargets := map[string]bool{
-            "Creature": true,
-            "Player":   true,
-            "Any":      true,
-        }
-        if !validTargets[s.TargetType] {
-            return &validation.ValidationError{
-                Type:    validation.ErrorTypeInvalid,
-                Message: "invalid target type",
-                Field:   "targetType",
-            }
-        }
+    // Validate spell-specific properties
+    if err := validation.ValidateSpell(s.TargetType); err != nil {
+        return err
     }
+
     return nil
 }
 

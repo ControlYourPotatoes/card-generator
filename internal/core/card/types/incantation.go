@@ -1,6 +1,7 @@
 package types
 
 import (
+
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card/validation"
 )
@@ -19,6 +20,11 @@ func (i *Incantation) Validate() *validation.ValidationError {
     }
 
     if err := baseValidator.ValidateBase(); err != nil {
+        return err
+    }
+
+    // Validate incantation-specific properties
+    if err := validation.ValidateIncantation(i.Timing); err != nil {
         return err
     }
 
