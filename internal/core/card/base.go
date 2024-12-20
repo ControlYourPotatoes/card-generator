@@ -1,6 +1,10 @@
 package card
 
-import "time"
+import (
+	"time"
+     
+	"github.com/ControlYourPotatoes/card-generator/internal/core/card/validation"
+)
 
 // CardType represents the type of a card
 type CardType string

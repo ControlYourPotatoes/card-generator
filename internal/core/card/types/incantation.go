@@ -1,7 +1,7 @@
 package types
 
 import (
-    "github.com/yourusername/cardgame/internal/core/card"
+    "github.com/ControlYourPotatoes/card-generator/internal/core/card"
 )
 
 type Incantation struct {
