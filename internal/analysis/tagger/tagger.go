@@ -3,222 +3,187 @@ package tagger
 import (
     "regexp"
     "strings"
+    "sync"
     
-    "github.com/ControlYourPotatoes/card-generator/internal/card"
+    "./rules"
+    "./types"
     "github.com/dlclark/regexp2"
 )
 
-// Enhanced tag categories
-type TagCategory string
-
-const (
-    TagTribal     TagCategory = "TRIBAL"
-    TagMechanic   TagCategory = "MECHANIC"
-    TagStrategy   TagCategory = "STRATEGY"
-    TagCost       TagCategory = "COST"
-    TagSynergy    TagCategory = "SYNERGY"
-    TagCombo      TagCategory = "COMBO"
-    TagArchetype  TagCategory = "ARCHETYPE"
-    TagTiming     TagCategory = "TIMING"
-)
-
-// PatternType defines how a pattern should be matched
-type PatternType int
-
-const (
-    ExactMatch PatternType = iota
-    RegexMatch
-    ProximityMatch
-    NegationMatch
-)
-
-// Enhanced TagRule with more sophisticated matching
-type TagRule struct {
-    Tag         Tag
-    Patterns    []Pattern
-    Conditions  []Condition
-    Description string
-    Weight      int // Higher weight means more significant for deck building
-}
-
-type Pattern struct {
-    Value     string
-    Type      PatternType
-    Proximity int // For ProximityMatch, how close words should be
-}
-
-type Condition struct {
-    Type  ConditionType
-    Value interface{}
-}
-
-type ConditionType string
-
-const (
-    IsType          ConditionType = "IS_TYPE"
-    HasKeyword      ConditionType = "HAS_KEYWORD"
-    CostCondition   ConditionType = "COST"
-    PowerCondition  ConditionType = "POWER"
-    ComboCondition  ConditionType = "COMBO"
-)
-
-// Complex pattern definitions for different card effects
-var complexPatterns = map[string][]Pattern{
-    "CARD_ADVANTAGE": {
-        {Value: `draw (\d+) cards?`, Type: RegexMatch},
-        {Value: `scry (\d+)`, Type: RegexMatch},
-        {Value: "investigate", Type: ExactMatch},
-    },
-    "REMOVAL": {
-        {Value: `destroy target`, Type: RegexMatch},
-        {Value: `exile target`, Type: RegexMatch},
-        {Value: `deal (\d+) damage to target`, Type: RegexMatch},
-    },
-    
-    "TRIBAL_LORD": {
-        {Value: `other .* you control get`, Type: RegexMatch},
-        {Value: `creatures you control of the chosen type`, Type: ExactMatch},
-    },
-}
-
-// Combo detection patterns
-var comboPatterns = map[string][]Pattern{
-    "INFINITE_COMBO_POTENTIAL": {
-        {Value: "untap", Type: ProximityMatch, Proximity: 5},
-        {Value: "return.*from.*graveyard", Type: RegexMatch},
-    },
-    "MANA_COMBO": {
-        {Value: "add.*for each", Type: RegexMatch},
-        {Value: "doubles", Type: ProximityMatch, Proximity: 3},
-    },
-}
-
-// ArchetypeDetector helps identify deck archetypes
-type ArchetypeDetector struct {
-    patterns map[string][]Pattern
-    weights  map[string]int
-}
-
-func NewArchetypeDetector() *ArchetypeDetector {
-    return &ArchetypeDetector{
-        patterns: map[string][]Pattern{
-            "AGGRO": {
-                {Value: "haste", Type: ExactMatch},
-                {Value: "attack", Type: ExactMatch},
-                {Value: "combat", Type: ExactMatch},
-            },
-            "CONTROL": {
-                {Value: "counter", Type: ExactMatch},
-                {Value: "destroy", Type: ExactMatch},
-                {Value: "exile", Type: ExactMatch},
-            },
-            "COMBO": {
-                {Value: "whenever", Type: ExactMatch},
-                {Value: "trigger", Type: ExactMatch},
-                {Value: "copy", Type: ExactMatch},
-            },
-            "MIDRANGE": {
-                {Value: "value", Type: ExactMatch},
-                {Value: "draw", Type: ExactMatch},
-                {Value: "return", Type: ExactMatch},
-            },
-        },
-        weights: map[string]int{
-            "AGGRO":    1,
-            "CONTROL":  1,
-            "COMBO":    1,
-            "MIDRANGE": 1,
-        },
-    }
-}
-
-// Enhanced CardTagger with more capabilities
+// CardTagger implements the main tagging logic
 type CardTagger struct {
-    rules             []TagRule
-    archetypeDetector *ArchetypeDetector
-    regexCache        map[string]*regexp2.Regexp
+    rules        []types.TagRule
+    regexCache   map[string]*regexp2.Regexp
+    cacheMutex   sync.RWMutex
+    manualTags   map[string][]types.Tag
+    tagValidator *TagValidator
 }
 
+// NewCardTagger creates a new instance of CardTagger
 func NewCardTagger() *CardTagger {
     tagger := &CardTagger{
         regexCache: make(map[string]*regexp2.Regexp),
-        archetypeDetector: NewArchetypeDetector(),
+        manualTags: make(map[string][]types.Tag),
+        tagValidator: NewTagValidator(),
     }
     tagger.initializeRules()
     return tagger
 }
 
-// GenerateTags now includes more sophisticated analysis
-func (ct *CardTagger) GenerateTags(c *card.CardData) []Tag {
-    var tags []Tag
+// initializeRules loads all tagging rules
+func (ct *CardTagger) initializeRules() {
+    ct.rules = append(ct.rules, rules.BaseRules...)
+    ct.rules = append(ct.rules, rules.TribalRules...)
     
-    // Basic tags
-    tags = append(tags, ct.generateBasicTags(c)...)
+    // Add archetype rules
+    for _, rule := range rules.ArchetypeRules {
+        ct.rules = append(ct.rules, rule)
+    }
     
-    // Complex pattern matching
-    tags = append(tags, ct.matchComplexPatterns(c)...)
-    
-    // Combo detection
-    tags = append(tags, ct.detectCombos(c)...)
-    
-    // Archetype analysis
-    tags = append(tags, ct.analyzeArchetype(c)...)
-    
-    // Synergy detection
-    tags = append(tags, ct.detectSynergies(c)...)
-    
-    return ct.deduplicateAndPrioritize(tags)
+    // Add timing rules
+    for _, rule := range rules.TimingRules {
+        ct.rules = append(ct.rules, rule)
+    }
 }
 
-// Example implementation of one of the analysis methods
-func (ct *CardTagger) detectCombos(c *card.CardData) []Tag {
-    var tags []Tag
-    effectLower := strings.ToLower(c.Effect)
+// GenerateTags generates tags for a card
+func (ct *CardTagger) GenerateTags(card interface{}) ([]types.Tag, error) {
+    cardData, ok := card.(*types.CardData)
+    if !ok {
+        return nil, fmt.Errorf("invalid card data type")
+    }
+
+    var tags []types.Tag
     
-    for comboName, patterns := range comboPatterns {
-        matched := true
-        for _, pattern := range patterns {
-            switch pattern.Type {
-            case RegexMatch:
-                if !ct.matchRegex(pattern.Value, effectLower) {
-                    matched = false
-                    break
-                }
-            case ProximityMatch:
-                if !ct.checkProximity(pattern.Value, effectLower, pattern.Proximity) {
-                    matched = false
-                    break
-                }
-            }
-        }
-        if matched {
-            tags = append(tags, Tag{comboName, TagCombo})
+    // Generate basic tags
+    basicTags := ct.generateBasicTags(cardData)
+    tags = append(tags, basicTags...)
+    
+    // Generate tribal tags
+    tribalTags := rules.GenerateTribalTags(cardData.Type, cardData.Effect)
+    tags = append(tags, tribalTags...)
+    
+    // Generate combo tags
+    comboTags := rules.DetectComboPotential(cardData.Effect)
+    tags = append(tags, comboTags...)
+    
+    // Apply pattern-based rules
+    ruleTags := ct.applyRules(cardData)
+    tags = append(tags, ruleTags...)
+    
+    // Add any manual tags
+    if manualTags, exists := ct.manualTags[cardData.ID]; exists {
+        tags = append(tags, manualTags...)
+    }
+    
+    // Deduplicate and validate tags
+    tags = ct.deduplicateTags(tags)
+    if err := ct.tagValidator.ValidateTags(tags); err != nil {
+        return nil, err
+    }
+    
+    return tags, nil
+}
+
+// generateBasicTags creates basic tags based on card properties
+func (ct *CardTagger) generateBasicTags(card *types.CardData) []types.Tag {
+    var tags []types.Tag
+    
+    // Add type-based tag
+    tags = append(tags, types.Tag{
+        Name:     string(card.Type),
+        Category: types.TagMechanic,
+        Weight:   1,
+    })
+    
+    // Add cost-based tags
+    if card.Cost > 0 {
+        costCategory := ct.categorizeCost(card.Cost)
+        tags = append(tags, types.Tag{
+            Name:     costCategory,
+            Category: types.TagCost,
+            Weight:   1,
+        })
+    }
+    
+    return tags
+}
+
+// applyRules applies all pattern-based rules to generate tags
+func (ct *CardTagger) applyRules(card *types.CardData) []types.Tag {
+    var tags []types.Tag
+    
+    for _, rule := range ct.rules {
+        if ct.ruleMatches(card, rule) {
+            tags = append(tags, types.Tag{
+                Name:     rule.Name,
+                Category: rule.Category,
+                Weight:   rule.Weight,
+            })
         }
     }
     
     return tags
 }
 
-// Helper method for regex matching with caching
+// ruleMatches checks if a card matches a specific rule
+func (ct *CardTagger) ruleMatches(card *types.CardData, rule types.TagRule) bool {
+    for _, pattern := range rule.Patterns {
+        matched := false
+        
+        switch pattern.Type {
+        case types.ExactMatch:
+            matched = strings.Contains(
+                strings.ToLower(card.Effect),
+                strings.ToLower(pattern.Value),
+            )
+            
+        case types.RegexMatch:
+            matched = ct.matchRegex(pattern.Value, card.Effect)
+            
+        case types.ProximityMatch:
+            matched = ct.checkProximity(
+                pattern.Value,
+                card.Effect,
+                pattern.Proximity,
+            )
+        }
+        
+        if !matched {
+            return false
+        }
+    }
+    
+    // Check conditions if patterns match
+    return ct.checkConditions(card, rule.Conditions)
+}
+
+// matchRegex performs regex matching with caching
 func (ct *CardTagger) matchRegex(pattern, text string) bool {
+    ct.cacheMutex.RLock()
     regex, exists := ct.regexCache[pattern]
+    ct.cacheMutex.RUnlock()
+    
     if !exists {
         var err error
         regex, err = regexp2.Compile(pattern, regexp2.IgnoreCase)
         if err != nil {
             return false
         }
+        
+        ct.cacheMutex.Lock()
         ct.regexCache[pattern] = regex
+        ct.cacheMutex.Unlock()
     }
     
     match, _ := regex.MatchString(text)
     return match
 }
 
-// Helper method for proximity checking
+// checkProximity checks if words appear within a certain distance
 func (ct *CardTagger) checkProximity(pattern, text string, maxDistance int) bool {
-    words := strings.Fields(text)
-    patternWords := strings.Fields(pattern)
+    words := strings.Fields(strings.ToLower(text))
+    patternWords := strings.Fields(strings.ToLower(pattern))
     
     for i := 0; i <= len(words)-len(patternWords); i++ {
         matched := true
@@ -228,9 +193,97 @@ func (ct *CardTagger) checkProximity(pattern, text string, maxDistance int) bool
                 break
             }
         }
-        if matched {
+        if matched && i <= maxDistance {
             return true
         }
     }
     return false
+}
+
+// checkConditions verifies if a card meets all conditions
+func (ct *CardTagger) checkConditions(card *types.CardData, conditions []types.Condition) bool {
+    for _, condition := range conditions {
+        switch condition.Type {
+        case types.IsType:
+            if card.Type != condition.Value {
+                return false
+            }
+            
+        case types.HasKeyword:
+            if !ct.hasKeyword(card, condition.Value.(string)) {
+                return false
+            }
+            
+        case types.CostCondition:
+            if !ct.checkCostCondition(card.Cost, condition.Value) {
+                return false
+            }
+        }
+    }
+    return true
+}
+
+// AddManualTag adds a manual tag to a card
+func (ct *CardTagger) AddManualTag(cardID string, tag types.Tag) error {
+    if err := ct.tagValidator.ValidateTag(tag); err != nil {
+        return err
+    }
+    
+    ct.cacheMutex.Lock()
+    defer ct.cacheMutex.Unlock()
+    
+    ct.manualTags[cardID] = append(ct.manualTags[cardID], tag)
+    return nil
+}
+
+// Helper functions
+func (ct *CardTagger) deduplicateTags(tags []types.Tag) []types.Tag {
+    seen := make(map[string]bool)
+    result := make([]types.Tag, 0)
+    
+    for _, tag := range tags {
+        key := tag.Name + string(tag.Category)
+        if !seen[key] {
+            seen[key] = true
+            result = append(result, tag)
+        }
+    }
+    return result
+}
+
+func (ct *CardTagger) categorizeCost(cost int) string {
+    switch {
+    case cost <= 2:
+        return "LOW_COST"
+    case cost <= 4:
+        return "MID_COST"
+    case cost <= 6:
+        return "HIGH_COST"
+    default:
+        return "VERY_HIGH_COST"
+    }
+}
+
+func (ct *CardTagger) hasKeyword(card *types.CardData, keyword string) bool {
+    return strings.Contains(
+        strings.ToLower(card.Effect),
+        strings.ToLower(keyword),
+    )
+}
+
+func (ct *CardTagger) checkCostCondition(cardCost int, condition interface{}) bool {
+    switch v := condition.(type) {
+    case int:
+        return cardCost == v
+    case map[string]int:
+        if min, ok := v["min"]; ok && cardCost < min {
+            return false
+        }
+        if max, ok := v["max"]; ok && cardCost > max {
+            return false
+        }
+        return true
+    default:
+        return false
+    }
 }
