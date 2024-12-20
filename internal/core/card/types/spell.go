@@ -1,27 +1,19 @@
-package card
+package types
 
 import (
-    "github.com/yourusername/cardgame/internal/core/card/validation"
+    "github.com/yourusername/cardgame/internal/core/card"
 )
 
 type Spell struct {
-    BaseCard
-    TargetType string // "Creature", "Player", "Any"
+    card.BaseCard
+    TargetType string
 }
 
-func (s *Spell) Validate() *validation.ValidationError {
-    // Validate base fields
-    if err := validation.ValidateName(s.Name); err != nil {
-        return err
-    }
-    if err := validation.ValidateCost(s.Cost); err != nil {
-        return err
-    }
-    if err := validation.ValidateEffect(s.Effect); err != nil {
+func (s *Spell) Validate() *card.ValidationError {
+    if err := s.ValidateBase(); err != nil {
         return err
     }
 
-    // Spell-specific validation
     if s.TargetType != "" {
         validTargets := map[string]bool{
             "Creature": true,
@@ -29,18 +21,17 @@ func (s *Spell) Validate() *validation.ValidationError {
             "Any":      true,
         }
         if !validTargets[s.TargetType] {
-            return &validation.ValidationError{
-                Type:    validation.ErrorTypeInvalid,
+            return &card.ValidationError{
+                Type:    card.ErrorTypeInvalid,
                 Message: "invalid target type",
                 Field:   "targetType",
             }
         }
     }
-
     return nil
 }
 
-func (s *Spell) ToData() *CardData {
+func (s *Spell) ToData() *card.CardData {
     data := s.BaseCard.ToData()
     data.TargetType = s.TargetType
     return data

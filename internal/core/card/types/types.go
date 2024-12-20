@@ -1,4 +1,4 @@
-package card
+package types
 
 // CardType represents the type of a card
 type CardType string

@@ -1,40 +1,31 @@
-package card
+package types
 
 import (
     "strings"
-    "github.com/yourusername/cardgame/internal/core/card/validation"
+    "github.com/yourusername/cardgame/internal/core/card"
 )
 
 type Artifact struct {
-    BaseCard
+    card.BaseCard
     IsEquipment bool
 }
 
-func (a *Artifact) Validate() *validation.ValidationError {
-    // Validate base fields
-    if err := validation.ValidateName(a.Name); err != nil {
-        return err
-    }
-    if err := validation.ValidateCost(a.Cost); err != nil {
-        return err
-    }
-    if err := validation.ValidateEffect(a.Effect); err != nil {
+func (a *Artifact) Validate() *card.ValidationError {
+    if err := a.ValidateBase(); err != nil {
         return err
     }
 
-    // Artifact-specific validation
     if a.IsEquipment && !strings.Contains(strings.ToLower(a.Effect), "equip") {
-        return &validation.ValidationError{
-            Type:    validation.ErrorTypeInvalid,
+        return &card.ValidationError{
+            Type:    card.ErrorTypeInvalid,
             Message: "equipment artifact must contain equip effect",
             Field:   "effect",
         }
     }
-
     return nil
 }
 
-func (a *Artifact) ToData() *CardData {
+func (a *Artifact) ToData() *card.CardData {
     data := a.BaseCard.ToData()
     data.IsEquipment = a.IsEquipment
     return data

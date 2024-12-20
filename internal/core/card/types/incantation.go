@@ -1,45 +1,36 @@
-package card
+package types
 
 import (
-    "github.com/yourusername/cardgame/internal/core/card/validation"
+    "github.com/yourusername/cardgame/internal/core/card"
 )
 
 type Incantation struct {
-    BaseCard
+    card.BaseCard
     Timing string
 }
 
-func (i *Incantation) Validate() *validation.ValidationError {
-    // Validate base fields
-    if err := validation.ValidateName(i.Name); err != nil {
-        return err
-    }
-    if err := validation.ValidateCost(i.Cost); err != nil {
-        return err
-    }
-    if err := validation.ValidateEffect(i.Effect); err != nil {
+func (i *Incantation) Validate() *card.ValidationError {
+    if err := i.ValidateBase(); err != nil {
         return err
     }
 
-    // Incantation-specific validation
     if i.Timing != "" {
         validTimings := map[string]bool{
             "ON ANY CLASH": true,
             "ON ATTACK":    true,
         }
         if !validTimings[i.Timing] {
-            return &validation.ValidationError{
-                Type:    validation.ErrorTypeInvalid,
+            return &card.ValidationError{
+                Type:    card.ErrorTypeInvalid,
                 Message: "invalid timing",
                 Field:   "timing",
             }
         }
     }
-
     return nil
 }
 
-func (i *Incantation) ToData() *CardData {
+func (i *Incantation) ToData() *card.CardData {
     data := i.BaseCard.ToData()
     data.Timing = i.Timing
     return data
