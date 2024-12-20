@@ -13,7 +13,8 @@ func ExtractTaggableData(c *card.CardData) map[string]interface{} {
         "type":      c.Type,
         "effect":    c.Effect,
         "keywords":  c.Keywords,
-        "trait":     c.Trait,
+        "tribes":     c.Tribes,
         "cost":      c.Cost,
     }
 }
+

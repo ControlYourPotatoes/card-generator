@@ -4,6 +4,7 @@ import (
     "strings"
 
 	"github.com/ControlYourPotatoes/card-generator/internal/analysis/types"
+	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
 )
 
 // SynergyDetector handles detection of card synergies
@@ -79,7 +80,7 @@ func NewSynergyDetector() *SynergyDetector {
 }
 
 // AnalyzeSynergies detects potential synergies
-func (sd *SynergyDetector) AnalyzeSynergies(card *types.CardData) []types.Tag {
+func (sd *SynergyDetector) AnalyzeSynergies(card *card.CardData) []types.Tag {
     var tags []types.Tag
     
     // Check tribal synergies
@@ -98,7 +99,7 @@ func (sd *SynergyDetector) AnalyzeSynergies(card *types.CardData) []types.Tag {
 }
 
 // detectTribalSynergies checks for tribal-based synergies
-func (sd *SynergyDetector) detectTribalSynergies(card *types.CardData) []types.Tag {
+func (sd *SynergyDetector) detectTribalSynergies(card *card.CardData) []types.Tag {
     var tags []types.Tag
     effectLower := strings.ToLower(card.Effect)
     
@@ -129,7 +130,7 @@ func (sd *SynergyDetector) detectTribalSynergies(card *types.CardData) []types.T
 }
 
 // detectMechanicSynergies checks for mechanic-based synergies
-func (sd *SynergyDetector) detectMechanicSynergies(card *types.CardData) []types.Tag {
+func (sd *SynergyDetector) detectMechanicSynergies(card *card.CardData) []types.Tag {
     var tags []types.Tag
     effectLower := strings.ToLower(card.Effect)
     
@@ -150,7 +151,7 @@ func (sd *SynergyDetector) detectMechanicSynergies(card *types.CardData) []types
 }
 
 // detectSynergyPatterns checks for specific synergy patterns
-func (sd *SynergyDetector) detectSynergyPatterns(card *types.CardData) []types.Tag {
+func (sd *SynergyDetector) detectSynergyPatterns(card *card.CardData) []types.Tag {
     var tags []types.Tag
     effectLower := strings.ToLower(card.Effect)
     
@@ -171,7 +172,7 @@ func (sd *SynergyDetector) detectSynergyPatterns(card *types.CardData) []types.T
 }
 
 // AnalyzeComboSynergies detects potential combo synergies between multiple cards
-func (sd *SynergyDetector) AnalyzeComboSynergies(cards []types.CardData) []types.Tag {
+func (sd *SynergyDetector) AnalyzeComboSynergies(cards []card.CardData) []types.Tag {
     var tags []types.Tag
     
     // Check each combo pattern
@@ -207,7 +208,7 @@ func (sd *SynergyDetector) AnalyzeComboSynergies(cards []types.CardData) []types
 }
 
 // detectComboPattern checks if a set of cards matches a combo pattern
-func (sd *SynergyDetector) detectComboPattern(cards []types.CardData, patterns []string) bool {
+func (sd *SynergyDetector) detectComboPattern(cards []card.CardData, patterns []string) bool {
     patternMatches := make(map[string]bool)
     
     for _, card := range cards {
@@ -230,7 +231,7 @@ func (sd *SynergyDetector) detectComboPattern(cards []types.CardData, patterns [
 }
 
 // detectCardAdvantageCombo checks for card draw/filtering combinations
-func (sd *SynergyDetector) detectCardAdvantageCombo(cards []types.CardData) bool {
+func (sd *SynergyDetector) detectCardAdvantageCombo(cards []card.CardData) bool {
     drawCount := 0
     filterCount := 0
     
@@ -249,7 +250,7 @@ func (sd *SynergyDetector) detectCardAdvantageCombo(cards []types.CardData) bool
 }
 
 // detectResourceEngine checks for resource generation combinations
-func (sd *SynergyDetector) detectResourceEngine(cards []types.CardData) bool {
+func (sd *SynergyDetector) detectResourceEngine(cards []card.CardData) bool {
     resourceGen := 0
     resourceUse := 0
     

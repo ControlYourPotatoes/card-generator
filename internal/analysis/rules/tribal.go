@@ -8,11 +8,11 @@ import (
 // TribalTypes defines all supported tribal types
 var TribalTypes = []string{
     "Zombie",
-    "Dragon",
     "Human",
     "Demon",
     "Goblin",
     "Demon",
+	"Vampire",
 }
 
 // TribalRules defines rules for tribal detection

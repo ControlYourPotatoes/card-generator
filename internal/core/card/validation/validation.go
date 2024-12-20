@@ -2,6 +2,7 @@ package validation
 
 import (
     "strings"
+    "fmt"
 
 )
 
@@ -34,15 +35,48 @@ func (b BaseValidator) ValidateBase() *ValidationError {
 }
 
 // ValidateCreature validates creature-specific properties
-func ValidateCreature(attack, defense int) *ValidationError {
+// ValidateCreature validates creature-specific properties
+func ValidateCreature(attack, defense int, tribes []types.Tribe) *ValidationError {
+    // Validate stats
     if attack < 0 {
         return NewValidationError(ErrorTypeRange, "attack cannot be negative", "attack")
     }
     if defense < 0 {
         return NewValidationError(ErrorTypeRange, "defense cannot be negative", "defense")
     }
+
+    // Validate tribes
+    if len(tribes) == 0 {
+        return NewValidationError(ErrorTypeRequired, "creature must have at least one tribe", "tribes")
+    }
+
+    // Check each tribe is valid
+    for _, tribe := range tribes {
+        if !types.ValidTribes[tribe] {
+            return NewValidationError(
+                ErrorTypeInvalid, 
+                fmt.Sprintf("invalid tribe: %s", tribe),
+                "tribes",
+            )
+        }
+    }
+
+    // Check for duplicate tribes
+    seenTribes := make(map[types.Tribe]bool)
+    for _, tribe := range tribes {
+        if seenTribes[tribe] {
+            return NewValidationError(
+                ErrorTypeInvalid,
+                fmt.Sprintf("duplicate tribe: %s", tribe),
+                "tribes",
+            )
+        }
+        seenTribes[tribe] = true
+    }
+
     return nil
 }
+
 
 // ValidateArtifact validates artifact-specific properties
 func ValidateArtifact(isEquipment bool, effect string) *ValidationError {
