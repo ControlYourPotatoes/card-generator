@@ -1,17 +1,20 @@
-// render/renderer.go
 package render
 
 import (
     "fmt"
     "image"
-    "image/color"
+    "strings"
     "github.com/fogleman/gg"
+    
     "github.com/ControlYourPotatoes/card-generator/internal/generator/text/types"
+    "github.com/ControlYourPotatoes/card-generator/internal/generator/text/manager"
 )
 
 type Renderer struct {
-    context *gg.Context
-    fontMgr *FontManager
+    context     *gg.Context
+    fontMgr     *manager.FontManager
+    layoutMgr   *manager.LayoutManager
+    styleMgr    *manager.StyleManager
 }
 
 func NewRenderer(img image.Image) (*Renderer, error) {
@@ -19,87 +22,102 @@ func NewRenderer(img image.Image) (*Renderer, error) {
     dc := gg.NewContext(bounds.Dx(), bounds.Dy())
     dc.DrawImage(img, 0, 0)
     
-    fontMgr, err := NewFontManager()
+    fontMgr, err := manager.NewFontManager()
     if err != nil {
-        return nil, err
+        return nil, fmt.Errorf("failed to initialize font manager: %w", err)
     }
     
+    layoutMgr := manager.NewLayoutManager(bounds)
+    styleMgr := manager.NewStyleManager()
+    
     return &Renderer{
-        context: dc,
-        fontMgr: fontMgr,
+        context:   dc,
+        fontMgr:   fontMgr,
+        layoutMgr: layoutMgr,
+        styleMgr:  styleMgr,
     }, nil
 }
 
-// RenderElement renders text for a specific card element
+// RenderElement renders a single card element
 func (r *Renderer) RenderElement(element types.CardElement, text string) error {
-    // Get element configuration
-    config, exists := types.DefaultElements[element]
-    if !exists {
-        return fmt.Errorf("unknown element type: %s", element)
-    }
-
-    // Get appropriate font
-    fontPath := r.fontMgr.GetFontPath(config.Font)
-
-    // Calculate best font size
-    bestSize := r.fitTextSize(text, config, fontPath)
-
-    // Load font with calculated size
+    // Get configurations from managers
+    config := r.layoutMgr.GetTextConfiguration(element)
+    style := r.styleMgr.GetStyle(element)
+    fontPath := r.fontMgr.GetFontPath(style.FontName)
+    
+    // Calculate best font size that fits the bounds
+    bestSize := r.fitTextSize(text, config.Bounds, style, fontPath)
+    
+    // Load font face
     if err := r.context.LoadFontFace(fontPath, bestSize); err != nil {
         return fmt.Errorf("failed to load font: %w", err)
     }
-
-    // Set color
-    r.context.SetColor(config.Color)
-
-    // Calculate position based on alignment
-    x, y := r.calculatePosition(text, config, bestSize)
-
-    // Draw text
-    if config.OneLine {
-        r.context.DrawString(text, x, y)
-    } else {
-        r.context.DrawStringWrapped(
-            text,
-            x, y,
-            0.0, 0.0,
-            float64(config.Width),
-            1.2, // line height
-            convertAlignment(config.Align),
-        )
+    
+    // Set text color
+    r.context.SetColor(style.Color)
+    
+    // Draw text based on configuration
+    if style.SingleLine {
+        return r.renderSingleLine(text, config.Bounds, style)
     }
-
-    return nil
+    return r.renderMultiLine(text, config.Bounds, style)
 }
 
-// fitTextSize finds the largest font size that fits within bounds
-func (r *Renderer) fitTextSize(text string, config types.TextElement, fontPath string) float64 {
-    for size := config.MaxSize; size >= config.MinSize; size-- {
+func (r *Renderer) fitTextSize(text string, bounds image.Rectangle, style manager.Style, fontPath string) float64 {
+    for size := style.Size; size >= style.MinFontSize; size-- {
         if err := r.context.LoadFontFace(fontPath, size); err != nil {
             continue
         }
 
-        width, height := r.context.MeasureString(text)
-        
-        if config.OneLine {
-            if int(width) <= config.Width && int(height) <= config.Height {
+        if style.SingleLine {
+            if r.fitsInSingleLine(text, bounds) {
                 return size
             }
         } else {
-            // For multi-line text, measure wrapped
-            lines := r.measureWrappedText(text, float64(config.Width), size)
-            totalHeight := float64(len(lines)) * size * 1.2
-            if totalHeight <= float64(config.Height) {
+            if r.fitsInMultiLine(text, bounds, style.LineSpacing) {
                 return size
             }
         }
     }
-    
-    return config.MinSize
+    return style.MinFontSize
 }
 
-// measureWrappedText returns lines after wrapping
-func (r *Renderer) measureWrappedText(text string, maxWidth float64, fontSize float64) []string {
+func (r *Renderer) fitsInSingleLine(text string, bounds image.Rectangle) bool {
+    width, height := r.context.MeasureString(text)
+    return int(width) <= bounds.Dx() && int(height) <= bounds.Dy()
+}
+
+func (r *Renderer) fitsInMultiLine(text string, bounds image.Rectangle, lineSpacing float64) bool {
+    lines := r.measureWrappedText(text, float64(bounds.Dx()))
+    fontSize := r.context.FontSize()
+    totalHeight := float64(len(lines)) * fontSize * lineSpacing
+    return int(totalHeight) <= bounds.Dy()
+}
+
+func (r *Renderer) renderSingleLine(text string, bounds image.Rectangle, style manager.Style) error {
+    width, height := r.context.MeasureString(text)
+    x := r.calculateX(bounds, width, style.Alignment)
+    y := r.calculateY(bounds, height, style.AnchorY)
+    
+    r.context.DrawString(text, x, y)
+    return nil
+}
+
+func (r *Renderer) renderMultiLine(text string, bounds image.Rectangle, style manager.Style) error {
+    r.context.DrawStringWrapped(
+        text,
+        float64(bounds.Min.X),
+        float64(bounds.Min.Y),
+        style.AnchorX,
+        style.AnchorY,
+        float64(bounds.Dx()),
+        style.LineSpacing,
+        style.Alignment,
+    )
+    return nil
+}
+
+func (r *Renderer) measureWrappedText(text string, maxWidth float64) []string {
     var lines []string
     words := strings.Fields(text)
     if len(words) == 0 {
@@ -120,42 +138,24 @@ func (r *Renderer) measureWrappedText(text string, maxWidth float64, fontSize fl
     return lines
 }
 
-// calculatePosition determines x,y coordinates based on alignment
-func (r *Renderer) calculatePosition(text string, config types.TextElement, fontSize float64) (float64, float64) {
-    width, height := r.context.MeasureString(text)
-    
-    // Calculate X position
-    var x float64
-    switch config.Align {
-    case "center":
-        x = float64(config.X) + (float64(config.Width)-width)/2
-    case "right":
-        x = float64(config.X + config.Width) - width
-    default: // left
-        x = float64(config.X)
+func (r *Renderer) calculateX(bounds image.Rectangle, width float64, align gg.Align) float64 {
+    switch align {
+    case gg.AlignCenter:
+        return float64(bounds.Min.X) + (float64(bounds.Dx())-width)/2
+    case gg.AlignRight:
+        return float64(bounds.Max.X) - width
+    default: // gg.AlignLeft
+        return float64(bounds.Min.X)
     }
-    
-    // Calculate Y position
-    var y float64
-    switch config.VerticalAlign {
-    case "center":
-        y = float64(config.Y) + (float64(config.Height)+height)/2
-    case "bottom":
-        y = float64(config.Y + config.Height)
-    default: // top
-        y = float64(config.Y) + height
-    }
-    
-    return x, y
 }
 
-func convertAlignment(align string) gg.Align {
-    switch align {
-    case "center":
-        return gg.AlignCenter
-    case "right":
-        return gg.AlignRight
-    default:
-        return gg.AlignLeft
-    }
+func (r *Renderer) calculateY(bounds image.Rectangle, height float64, anchorY float64) float64 {
+    boundsHeight := float64(bounds.Dy())
+    y := float64(bounds.Min.Y) + (boundsHeight-height)*anchorY + height
+    return y
+}
+
+// GetImage returns the final rendered image
+func (r *Renderer) GetImage() image.Image {
+    return r.context.Image()
 }
