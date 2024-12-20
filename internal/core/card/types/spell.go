@@ -3,7 +3,7 @@ package types
 import (
 	
     "github.com/ControlYourPotatoes/card-generator/internal/core/card"
-	
+    "github.com/ControlYourPotatoes/card-generator/internal/core/card/validation"	
 )
 
 type Spell struct {
@@ -11,8 +11,15 @@ type Spell struct {
     TargetType string
 }
 
-func (s *Spell) Validate() *card.ValidationError {
-    if err := s.ValidateBase(); err != nil {
+func (s *Spell) Validate() *validation.ValidationError {
+    
+    baseValidator := validation.BaseValidator{
+        Name: s.Name,
+        Cost: s.Cost,
+        Effect: s.Effect,
+    }
+
+    if err := baseValidator.ValidateBase(); err != nil {
         return err
     }
 
@@ -23,8 +30,8 @@ func (s *Spell) Validate() *card.ValidationError {
             "Any":      true,
         }
         if !validTargets[s.TargetType] {
-            return &card.ValidationError{
-                Type:    card.ErrorTypeInvalid,
+            return &validation.ValidationError{
+                Type:    validation.ErrorTypeInvalid,
                 Message: "invalid target type",
                 Field:   "targetType",
             }

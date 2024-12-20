@@ -2,8 +2,9 @@ package types
 
 import (
 
-	
+
     "github.com/ControlYourPotatoes/card-generator/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/internal/core/card/validation"
 )
 
 type Creature struct {
@@ -13,25 +14,23 @@ type Creature struct {
     Trait   string
 }
 
-func (c *Creature) Validate() *card.ValidationError {
-    if err := c.ValidateBase(); err != nil {
+func (c *Creature) Validate() *validation.ValidationError {
+    
+	baseValidator := validation.BaseValidator{
+		Name: c.Name,
+		Cost: c.Cost,
+		Effect: c.Effect,
+	}
+    
+    if err := baseValidator.ValidateBase(); err != nil {
         return err
     }
     
-    if c.Attack < 0 {
-        return &card.ValidationError{
-            Type:    card.ErrorTypeRange,
-            Message: "attack cannot be negative",
-            Field:   "attack",
-        }
+    // Validate creature-specific properties
+    if err := validation.ValidateCreature(c.Attack, c.Defense); err != nil {
+        return err
     }
-    if c.Defense < 0 {
-        return &card.ValidationError{
-            Type:    card.ErrorTypeRange,
-            Message: "defense cannot be negative",
-            Field:   "defense",
-        }
-    }
+    
     return nil
 }
 

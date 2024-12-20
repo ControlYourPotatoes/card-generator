@@ -1,8 +1,8 @@
 package types
 
 import (
-    
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/internal/core/card/validation"
 )
 
 type Anthem struct {
@@ -10,18 +10,19 @@ type Anthem struct {
     Continuous bool
 }
 
-func (a *Anthem) Validate() *card.ValidationError {
-    if err := a.ValidateBase(); err != nil {
+func (c *Anthem) Validate() *validation.ValidationError {
+    
+    
+    baseValidator := validation.BaseValidator{
+		Name: c.Name,
+		Cost: c.Cost,
+		Effect: c.Effect,
+	}
+    
+    if err := baseValidator.ValidateBase(); err != nil {
         return err
     }
 
-    if !a.Continuous {
-        return &card.ValidationError{
-            Type:    card.ErrorTypeInvalid,
-            Message: "anthem must be continuous",
-            Field:   "continuous",
-        }
-    }
     return nil
 }
 

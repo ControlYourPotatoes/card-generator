@@ -1,7 +1,8 @@
 package types
 
 import (
-    "github.com/ControlYourPotatoes/card-generator/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/internal/core/card/validation"
 )
 
 type Incantation struct {
@@ -9,24 +10,18 @@ type Incantation struct {
     Timing string
 }
 
-func (i *Incantation) Validate() *card.ValidationError {
-    if err := i.ValidateBase(); err != nil {
+func (i *Incantation) Validate() *validation.ValidationError {
+    
+    baseValidator := validation.BaseValidator{
+        Name: i.Name,
+        Cost: i.Cost,
+        Effect: i.Effect,
+    }
+
+    if err := baseValidator.ValidateBase(); err != nil {
         return err
     }
 
-    if i.Timing != "" {
-        validTimings := map[string]bool{
-            "ON ANY CLASH": true,
-            "ON ATTACK":    true,
-        }
-        if !validTimings[i.Timing] {
-            return &card.ValidationError{
-                Type:    card.ErrorTypeInvalid,
-                Message: "invalid timing",
-                Field:   "timing",
-            }
-        }
-    }
     return nil
 }
 
