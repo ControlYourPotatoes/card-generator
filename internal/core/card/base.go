@@ -3,7 +3,7 @@ package card
 import (
 	"time"
      
-	"github.com/ControlYourPotatoes/card-generator/internal/core/card/validation"
+	"github.com/ControlYourPotatoes/card-generator/internal/core/common"
 )
 
 // CardType represents the type of a card
@@ -23,7 +23,7 @@ type Card interface {
     GetCost() int
     GetEffect() string
     GetType() CardType
-    Validate() *ValidationError
+    Validate() *common.ValidationError
     ToData() *CardData
 }
 

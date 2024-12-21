@@ -4,6 +4,8 @@ import (
     "strings"
     "fmt"
 
+    "github.com/ControlYourPotatoes/card-generator/internal/core/common"
+
 )
 
 // CardValidator defines the interface for card validation
@@ -36,25 +38,25 @@ func (b BaseValidator) ValidateBase() *ValidationError {
 
 // ValidateCreature validates creature-specific properties
 // ValidateCreature validates creature-specific properties
-func ValidateCreature(attack, defense int, tribes []types.Tribe) *ValidationError {
+func ValidateCreature(attack, defense int, tribes []common.Tribe) *common.ValidationError {
     // Validate stats
     if attack < 0 {
-        return NewValidationError(ErrorTypeRange, "attack cannot be negative", "attack")
+        return common.NewValidationError(common.ErrorTypeRange, "attack cannot be negative", "attack")
     }
     if defense < 0 {
-        return NewValidationError(ErrorTypeRange, "defense cannot be negative", "defense")
+        return common.NewValidationError(common.ErrorTypeRange, "defense cannot be negative", "defense")
     }
 
     // Validate tribes
     if len(tribes) == 0 {
-        return NewValidationError(ErrorTypeRequired, "creature must have at least one tribe", "tribes")
+        return common.NewValidationError(common.ErrorTypeRequired, "creature must have at least one tribe", "tribes")
     }
 
     // Check each tribe is valid
     for _, tribe := range tribes {
-        if !types.ValidTribes[tribe] {
-            return NewValidationError(
-                ErrorTypeInvalid, 
+        if !common.ValidTribes[tribe] {
+            return common.NewValidationError(
+                common.ErrorTypeInvalid, 
                 fmt.Sprintf("invalid tribe: %s", tribe),
                 "tribes",
             )
@@ -62,11 +64,11 @@ func ValidateCreature(attack, defense int, tribes []types.Tribe) *ValidationErro
     }
 
     // Check for duplicate tribes
-    seenTribes := make(map[types.Tribe]bool)
+    seenTribes := make(map[common.Tribe]bool)
     for _, tribe := range tribes {
         if seenTribes[tribe] {
-            return NewValidationError(
-                ErrorTypeInvalid,
+            return common.NewValidationError(
+                common.ErrorTypeInvalid,
                 fmt.Sprintf("duplicate tribe: %s", tribe),
                 "tribes",
             )
