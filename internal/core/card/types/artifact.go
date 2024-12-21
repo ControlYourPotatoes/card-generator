@@ -4,6 +4,8 @@ import (
 
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card/validation"
+	"github.com/ControlYourPotatoes/card-generator/internal/core/common"
+    
 )
 
 type Artifact struct {
@@ -11,7 +13,7 @@ type Artifact struct {
     IsEquipment bool
 }
 
-func (a *Artifact) Validate() *validation.ValidationError {
+func (a *Artifact) Validate() *common.ValidationError {
     
     baseValidator := validation.BaseValidator{
         Name: a.Name,

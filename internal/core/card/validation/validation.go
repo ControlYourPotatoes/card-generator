@@ -10,7 +10,7 @@ import (
 
 // CardValidator defines the interface for card validation
 type CardValidator interface {
-    ValidateBase() *ValidationError
+    ValidateBase() *common.ValidationError  // Updated return type
 }
 
 // BaseValidator provides validation for base card properties
@@ -20,23 +20,23 @@ type BaseValidator struct {
     Effect string
 }
 
-func (b BaseValidator) ValidateBase() *ValidationError {
+func (b BaseValidator) ValidateBase() *common.ValidationError {
     if b.Name == "" {
-        return NewValidationError(ErrorTypeRequired, "name cannot be empty", "name")
+        return common.NewValidationError(common.ErrorTypeRequired, "name cannot be empty", "name")
     }
     if len(b.Name) > 40 {
-        return NewValidationError(ErrorTypeRange, "name exceeds maximum length of 40 characters", "name")
+        return common.NewValidationError(common.ErrorTypeRange, "name exceeds maximum length of 40 characters", "name")
     }
-    if b.Cost < -1 { // -1 allowed for X costs
-        return NewValidationError(ErrorTypeRange, "cost cannot be negative (except -1 for X costs)", "cost")
+    if b.Cost < -1 {
+        return common.NewValidationError(common.ErrorTypeRange, "cost cannot be negative (except -1 for X costs)", "cost")
     }
     if b.Effect == "" {
-        return NewValidationError(ErrorTypeRequired, "effect cannot be empty", "effect")
+        return common.NewValidationError(common.ErrorTypeRequired, "effect cannot be empty", "effect")
     }
     return nil
 }
 
-// ValidateCreature validates creature-specific properties
+
 // ValidateCreature validates creature-specific properties
 func ValidateCreature(attack, defense int, tribes []common.Tribe) *common.ValidationError {
     // Validate stats
@@ -80,16 +80,15 @@ func ValidateCreature(attack, defense int, tribes []common.Tribe) *common.Valida
 }
 
 
-// ValidateArtifact validates artifact-specific properties
-func ValidateArtifact(isEquipment bool, effect string) *ValidationError {
+// Update other validation functions to use common.ValidationError
+func ValidateArtifact(isEquipment bool, effect string) *common.ValidationError {
     if isEquipment && !strings.Contains(strings.ToLower(effect), "equip") {
-        return NewValidationError(ErrorTypeInvalid, "equipment artifact must contain equip effect", "effect")
+        return common.NewValidationError(common.ErrorTypeInvalid, "equipment artifact must contain equip effect", "effect")
     }
     return nil
 }
 
-// ValidateSpell validates spell-specific properties
-func ValidateSpell(targetType string) *ValidationError {
+func ValidateSpell(targetType string) *common.ValidationError {
     if targetType != "" {
         validTargets := map[string]bool{
             "Creature": true,
@@ -97,30 +96,28 @@ func ValidateSpell(targetType string) *ValidationError {
             "Any":      true,
         }
         if !validTargets[targetType] {
-            return NewValidationError(ErrorTypeInvalid, "invalid target type", "targetType")
+            return common.NewValidationError(common.ErrorTypeInvalid, "invalid target type", "targetType")
         }
     }
     return nil
 }
 
-// ValidateIncantation validates incantation-specific properties
-func ValidateIncantation(timing string) *ValidationError {
+func ValidateIncantation(timing string) *common.ValidationError {
     if timing != "" {
         validTimings := map[string]bool{
             "ON ANY CLASH": true,
             "ON ATTACK":    true,
         }
         if !validTimings[timing] {
-            return NewValidationError(ErrorTypeInvalid, "invalid timing", "timing")
+            return common.NewValidationError(common.ErrorTypeInvalid, "invalid timing", "timing")
         }
     }
     return nil
 }
 
-// ValidateAnthem validates anthem-specific properties
-func ValidateAnthem(continuous bool) *ValidationError {
+func ValidateAnthem(continuous bool) *common.ValidationError {
     if !continuous {
-        return NewValidationError(ErrorTypeInvalid, "anthem must be continuous", "continuous")
+        return common.NewValidationError(common.ErrorTypeInvalid, "anthem must be continuous", "continuous")
     }
     return nil
 }

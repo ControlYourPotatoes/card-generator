@@ -3,7 +3,9 @@ package types
 import (
 	
     "github.com/ControlYourPotatoes/card-generator/internal/core/card"
-    "github.com/ControlYourPotatoes/card-generator/internal/core/card/validation"	
+    "github.com/ControlYourPotatoes/card-generator/internal/core/card/validation"
+	"github.com/ControlYourPotatoes/card-generator/internal/core/common"
+
 )
 
 type Spell struct {
@@ -11,7 +13,7 @@ type Spell struct {
     TargetType string
 }
 
-func (s *Spell) Validate() *validation.ValidationError {
+func (s *Spell) Validate() *common.ValidationError {
     
     baseValidator := validation.BaseValidator{
         Name: s.Name,

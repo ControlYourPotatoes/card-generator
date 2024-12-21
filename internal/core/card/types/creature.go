@@ -5,17 +5,18 @@ import (
     
     "github.com/ControlYourPotatoes/card-generator/internal/core/card"
     "github.com/ControlYourPotatoes/card-generator/internal/core/card/validation"
+    "github.com/ControlYourPotatoes/card-generator/internal/core/common"  // Add this import
 )
 
 type Creature struct {
     card.BaseCard
     Attack  int
     Defense int
-    Tribes  []card.Tribe
+    Tribes  []common.Tribe  // Changed from card.Tribe
     Traits  []string
 }
 
-func (c *Creature) Validate() *validation.ValidationError {
+func (c *Creature) Validate() *common.ValidationError {  // Changed return type
     // Validate base properties
     baseValidator := validation.BaseValidator{
         Name:   c.Name,
@@ -44,7 +45,6 @@ func (c *Creature) ToData() *card.CardData {
     return data
 }
 
-// Helper methods
 func NewCreature(name string, cost int) *Creature {
     return &Creature{
         BaseCard: card.BaseCard{
@@ -52,19 +52,15 @@ func NewCreature(name string, cost int) *Creature {
             Cost: cost,
             Type: card.TypeCreature,
         },
-        Tribes: make([]card.Tribe, 0),
+        Tribes: make([]common.Tribe, 0),  // Changed from card.Tribe
         Traits: make([]string, 0),
     }
 }
 
-func (c *Creature) AddTribe(tribe card.Tribe) error {
-    // Since validation will catch duplicates and invalid tribes,
-    // we can simply append here and let validation handle the checks
+func (c *Creature) AddTribe(tribe common.Tribe) error {  // Changed parameter type
     c.Tribes = append(c.Tribes, tribe)
     
-    // Run validation to ensure the addition is valid
     if err := validation.ValidateCreature(c.Attack, c.Defense, c.Tribes); err != nil {
-        // Remove the tribe if validation failed
         c.Tribes = c.Tribes[:len(c.Tribes)-1]
         return fmt.Errorf("invalid tribe addition: %v", err)
     }

@@ -3,6 +3,8 @@ package types
 import (
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card/validation"
+	"github.com/ControlYourPotatoes/card-generator/internal/core/common"
+
 )
 
 type Anthem struct {
@@ -10,7 +12,7 @@ type Anthem struct {
     Continuous bool
 }
 
-func (c *Anthem) Validate() *validation.ValidationError {
+func (c *Anthem) Validate() *common.ValidationError {
     
     
     baseValidator := validation.BaseValidator{

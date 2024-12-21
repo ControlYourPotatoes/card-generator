@@ -4,6 +4,8 @@ import (
 
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card/validation"
+	"github.com/ControlYourPotatoes/card-generator/internal/core/common"
+    
 )
 
 type Incantation struct {
@@ -11,7 +13,7 @@ type Incantation struct {
     Timing string
 }
 
-func (i *Incantation) Validate() *validation.ValidationError {
+func (i *Incantation) Validate() *common.ValidationError {
     
     baseValidator := validation.BaseValidator{
         Name: i.Name,
