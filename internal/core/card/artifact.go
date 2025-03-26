@@ -1,25 +1,45 @@
 package card
 
-import "strings"
+import (
+	"strings"
+)
 
-// Artifact represents an artifact card
+// Artifact represents an Artifact card
 type Artifact struct {
 	BaseCard
 	IsEquipment bool
 }
 
-// Validate performs validation specific to Artifact cards
+// Validate performs artifact-specific validation in addition to base card validation
 func (a *Artifact) Validate() error {
-	// First validate the base card
+	// First, validate the base card fields
 	if err := a.BaseCard.Validate(); err != nil {
 		return err
 	}
-	
-	// Validate artifact-specific rules
-	if a.IsEquipment && !strings.Contains(strings.ToLower(a.Effect), "equip") {
-		return NewValidationError("equipment artifact must reference 'equip' in its effect", "effect")
+
+	// Perform artifact-specific validation
+	if a.Type != TypeArtifact {
+		return NewValidationError("card type must be Artifact", "type")
 	}
-	
+
+	// If it's marked as equipment, ensure the effect mentions "equip" as a word
+	if a.IsEquipment {
+		effectLower := strings.ToLower(a.Effect)
+		// Check for word boundaries around "equip"
+		hasEquip := strings.Contains(effectLower, " equip") || 
+			strings.Contains(effectLower, "equip ") || 
+			strings.HasPrefix(effectLower, "equip") || 
+			strings.HasSuffix(effectLower, "equip") ||
+			strings.Contains(effectLower, "equip.") ||
+			strings.Contains(effectLower, "equip,") ||
+			strings.Contains(effectLower, "equip:") ||
+			strings.Contains(effectLower, "equip;")
+		
+		if !hasEquip {
+			return NewValidationError("equipment artifact must contain equip effect", "effect")
+		}
+	}
+
 	return nil
 }
 
@@ -30,15 +50,30 @@ func (a *Artifact) ToDTO() *CardDTO {
 	return dto
 }
 
-// ToData is for backward compatibility
+// ToData maintains backward compatibility with the older interface
 func (a *Artifact) ToData() *CardDTO {
 	return a.ToDTO()
 }
 
-// NewArtifactFromDTO creates an Artifact from a CardDTO
+// NewArtifactFromDTO creates a new Artifact from CardDTO
 func NewArtifactFromDTO(dto *CardDTO) *Artifact {
 	return &Artifact{
 		BaseCard:    NewBaseCardFromDTO(dto),
 		IsEquipment: dto.IsEquipment,
 	}
+}
+
+// DetermineIsEquipment checks if an artifact is an equipment type
+// based on its effect text (useful for parsing)
+func DetermineIsEquipment(effect string) bool {
+	effectLower := strings.ToLower(effect)
+	// Check for word boundaries around "equip"
+	return strings.Contains(effectLower, " equip") || 
+		strings.Contains(effectLower, "equip ") || 
+		strings.HasPrefix(effectLower, "equip") || 
+		strings.HasSuffix(effectLower, "equip") ||
+		strings.Contains(effectLower, "equip.") ||
+		strings.Contains(effectLower, "equip,") ||
+		strings.Contains(effectLower, "equip:") ||
+		strings.Contains(effectLower, "equip;")
 }
