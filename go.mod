@@ -10,4 +10,5 @@ require (
 require (
 	github.com/dlclark/regexp2 v1.11.4 // indirect
 	github.com/fogleman/gg v1.3.0 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 )
