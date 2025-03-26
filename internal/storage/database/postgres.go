@@ -1,4 +1,3 @@
-// internal/storage/database/postgres.go
 package database
 
 import (
