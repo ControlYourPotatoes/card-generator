@@ -1,0 +1,25 @@
+ok, questions, for the tagger engine, i noticed we also have a type folder, would it be benefitial to use the types package to set any definitions that will be shared from card, like a middle man for the entire tagger part. 
+
+I am curious if thats something that should be done or its better for it directly import the definitions from cards. The reason i mainly ask this is due to this error say something about to many call and it made me took its actually called a lot but i may be reeding into since i am unsure if thats what it means
+
+[{
+	"resource": "/p:/User Files/Documents/ManaStuck/card-generator/internal/analysis/tagger/tagger.go",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"code": {
+		"value": "WrongArgCount",
+		"target": {
+			"$mid": 1,
+			"path": "/golang.org/x/tools/internal/typesinternal",
+			"scheme": "https",
+			"authority": "pkg.go.dev",
+			"fragment": "WrongArgCount"
+		}
+	},
+	"severity": 8,
+	"message": "too many arguments in call to rules.GenerateTribalTags\n\thave (string, string, []common.Tribe)\n\twant (string, string)",
+	"source": "compiler",
+	"startLineNumber": 73,
+	"startColumn": 9,
+	"endLineNumber": 73,
+	"endColumn": 24
+}]

@@ -66,9 +66,19 @@ func (ct *CardTagger) GenerateTags(c interface{}) ([]types.Tag, error) {
     basicTags := ct.generateBasicTags(cardData)
     tags = append(tags, basicTags...)
     
-    // Generate tribal tags
-    tribalTags := rules.GenerateTribalTags(string(cardData.Type), cardData.Effect)
+    // Generate tribal tags using the card's tribes
+    tribalTags := rules.GenerateTribalTags(
+        string(cardData.Type),
+        cardData.Effect,
+        cardData.Tribes,
+    )
     tags = append(tags, tribalTags...)
+    
+    // Generate class-based tags if the card has classes
+    if len(cardData.Classes) > 0 {
+        classTags := ct.generateClassTags(cardData.Classes)
+        tags = append(tags, classTags...)
+    }
     
     // Generate combo tags
     comboTags := rules.DetectComboPotential(cardData.Effect)
@@ -90,6 +100,21 @@ func (ct *CardTagger) GenerateTags(c interface{}) ([]types.Tag, error) {
     }
     
     return tags, nil
+}
+
+// generateClassTags creates tags based on class types
+func (ct *CardTagger) generateClassTags(classes []string) []types.Tag {
+    var tags []types.Tag
+    
+    for _, class := range classes {
+        tags = append(tags, types.Tag{
+            Name:     class + "_CLASS",
+            Category: types.TagMechanic,
+            Weight:   1,
+        })
+    }
+    
+    return tags
 }
 
 

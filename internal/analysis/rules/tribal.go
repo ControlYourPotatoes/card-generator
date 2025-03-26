@@ -3,26 +3,16 @@ package rules
 import (
     
     "github.com/ControlYourPotatoes/card-generator/internal/analysis/types"
+    "github.com/ControlYourPotatoes/card-generator/internal/core/common"
 )
 
 // TribalTypes defines all supported tribal types
-var TribalTypes = []string{
-    "Zombie",
-    "Human",
-    "Demon",
-    "Goblin",
-    "Demon",
-	"Vampire",
-}
-
-// TribalRules defines rules for tribal detection
 var TribalRules = []types.TagRule{
     {
         Name:     "TRIBAL_LORD",
         Category: types.TagTribal,
         Patterns: []types.Pattern{
             {Value: `other .* you control get`, Type: types.RegexMatch},
-			{Value: `.* you control get`, Type: types.RegexMatch},
             {Value: `creatures you control of the chosen type`, Type: types.ExactMatch},
         },
         Weight:      3,
@@ -41,23 +31,29 @@ var TribalRules = []types.TagRule{
 }
 
 // TribalEffectPatterns maps tribal types to their common effect patterns
-var TribalEffectPatterns = map[string][]types.Pattern{
-    "Zombie": {
+var TribalEffectPatterns = map[common.Tribe][]types.Pattern{
+    common.TribeZombie: {
         {Value: "create.*Zombie", Type: types.RegexMatch},
         {Value: "return.*from.*graveyard", Type: types.RegexMatch},
     },
-    "Dragon": {
-        {Value: "flying", Type: types.ExactMatch},
+    common.TribeVampire: {
+        {Value: "gain.*life", Type: types.RegexMatch},
+        {Value: "drain", Type: types.ExactMatch},
+    },
+    common.TribeGoblin: {
+        {Value: "haste", Type: types.ExactMatch},
+        {Value: "attack", Type: types.ExactMatch},
+    },
+    common.TribeDemon: {
+        {Value: "sacrifice", Type: types.ExactMatch},
         {Value: "deal.*damage", Type: types.RegexMatch},
     },
-    "Warrior": {
-        {Value: "equipment", Type: types.ExactMatch},
-        {Value: "combat", Type: types.ExactMatch},
-    },
+    // Add patterns for other tribes as needed
 }
 
+
 // GenerateTribalTags generates tribal-specific tags
-func GenerateTribalTags(cardType string, effect string) []types.Tag {
+func GenerateTribalTags(cardType string, effect string, tribes []string) []types.Tag {
     var tags []types.Tag
     
     // Check if card is of a tribal type
