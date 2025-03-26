@@ -25,15 +25,25 @@ func (a *Artifact) Validate() error {
 	// If it's marked as equipment, ensure the effect mentions "equip" as a word
 	if a.IsEquipment {
 		effectLower := strings.ToLower(a.Effect)
-		// Check for word boundaries around "equip"
-		hasEquip := strings.Contains(effectLower, " equip") || 
-			strings.Contains(effectLower, "equip ") || 
-			strings.HasPrefix(effectLower, "equip") || 
-			strings.HasSuffix(effectLower, "equip") ||
-			strings.Contains(effectLower, "equip.") ||
-			strings.Contains(effectLower, "equip,") ||
-			strings.Contains(effectLower, "equip:") ||
-			strings.Contains(effectLower, "equip;")
+		
+		// Check for word boundaries around "equip" but not "equipment"
+		hasEquip := false
+		
+		// Use a more precise approach with regex
+		if strings.Contains(effectLower, "equip") {
+			// Check if it's not part of "equipment"
+			if !strings.Contains(effectLower, "equipment") || 
+			   (strings.Contains(effectLower, "equip ") || 
+			   strings.Contains(effectLower, " equip") || 
+			   strings.HasPrefix(effectLower, "equip") || 
+			   strings.HasSuffix(effectLower, "equip") ||
+			   strings.Contains(effectLower, "equip.") ||
+			   strings.Contains(effectLower, "equip,") ||
+			   strings.Contains(effectLower, "equip:") ||
+			   strings.Contains(effectLower, "equip;")) {
+				hasEquip = true
+			}
+		}
 		
 		if !hasEquip {
 			return NewValidationError("equipment artifact must contain equip effect", "effect")
@@ -67,13 +77,22 @@ func NewArtifactFromDTO(dto *CardDTO) *Artifact {
 // based on its effect text (useful for parsing)
 func DetermineIsEquipment(effect string) bool {
 	effectLower := strings.ToLower(effect)
-	// Check for word boundaries around "equip"
-	return strings.Contains(effectLower, " equip") || 
-		strings.Contains(effectLower, "equip ") || 
-		strings.HasPrefix(effectLower, "equip") || 
-		strings.HasSuffix(effectLower, "equip") ||
-		strings.Contains(effectLower, "equip.") ||
-		strings.Contains(effectLower, "equip,") ||
-		strings.Contains(effectLower, "equip:") ||
-		strings.Contains(effectLower, "equip;")
+	
+	// Check for word boundaries around "equip" but not "equipment"
+	if strings.Contains(effectLower, "equip") {
+		// Check if it's not just part of "equipment" or has clear word boundaries
+		if !strings.Contains(effectLower, "equipment") || 
+		   strings.Contains(effectLower, "equip ") || 
+		   strings.Contains(effectLower, " equip") || 
+		   strings.HasPrefix(effectLower, "equip") || 
+		   strings.HasSuffix(effectLower, "equip") ||
+		   strings.Contains(effectLower, "equip.") ||
+		   strings.Contains(effectLower, "equip,") ||
+		   strings.Contains(effectLower, "equip:") ||
+		   strings.Contains(effectLower, "equip;") {
+			return true
+		}
+	}
+	
+	return false
 }
