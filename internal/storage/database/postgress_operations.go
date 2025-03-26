@@ -7,7 +7,7 @@ import (
 
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // saveCard stores a card in the database
@@ -431,7 +431,7 @@ func (s *PostgresStore) loadCreatureCard(cardID int, baseCard card.BaseCard) (ca
 	var (
 		attack  int
 		defense int
-		trait   pgx.NullString
+		traitName pgtype.Text
 	)
 	
 	err := s.pool.QueryRow(
@@ -441,15 +441,15 @@ func (s *PostgresStore) loadCreatureCard(cardID int, baseCard card.BaseCard) (ca
 		LEFT JOIN traits t ON cc.trait_id = t.id
 		WHERE cc.card_id = $1`,
 		cardID,
-	).Scan(&attack, &defense, &trait)
+	).Scan(&attack, &defense, &traitName)
 	
 	if err != nil && err != pgx.ErrNoRows {
 		return nil, fmt.Errorf("failed to load creature data: %w", err)
 	}
 	
 	traitStr := ""
-	if trait.Valid {
-		traitStr = trait.String
+	if traitName.Valid {
+		traitStr = traitName.String
 	}
 	
 	return &card.Creature{
@@ -484,7 +484,7 @@ func (s *PostgresStore) loadArtifactCard(cardID int, baseCard card.BaseCard) (ca
 
 // loadSpellCard loads a spell card from the database
 func (s *PostgresStore) loadSpellCard(cardID int, baseCard card.BaseCard) (card.Card, error) {
-	var targetType pgx.NullString
+	var targetType pgtype.Text
 	
 	err := s.pool.QueryRow(
 		context.Background(),
@@ -511,7 +511,7 @@ func (s *PostgresStore) loadSpellCard(cardID int, baseCard card.BaseCard) (card.
 
 // loadIncantationCard loads an incantation card from the database
 func (s *PostgresStore) loadIncantationCard(cardID int, baseCard card.BaseCard) (card.Card, error) {
-	var timing pgx.NullString
+	var timing pgtype.Text
 	
 	err := s.pool.QueryRow(
 		context.Background(),
