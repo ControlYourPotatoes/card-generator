@@ -3,7 +3,6 @@ package database_test
 import (
 	"os"
 	"testing"
-	"time"
 
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
 	"github.com/ControlYourPotatoes/card-generator/internal/storage/database"

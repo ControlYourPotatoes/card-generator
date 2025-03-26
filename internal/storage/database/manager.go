@@ -4,11 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"path/filepath"
 
 	"github.com/ControlYourPotatoes/card-generator/internal/storage/database/migration"
 	"github.com/joho/godotenv"
-	_ "github.com/lib/pq" // PostgreSQL driver
+	_ "github.com/lib/pq"
 )
 
 // Manager handles database connections and initialization
