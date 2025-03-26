@@ -13,8 +13,13 @@ func setupTestDB(t *testing.T) *database.PostgresStore {
 	// Load environment variables
 	err := godotenv.Load("../../../.env")
 	if err != nil {
+		t.Logf(".env file loaded successfully")
+	} else {
 		t.Logf("Warning: .env file not found, using environment variables")
 	}
+
+	// Log if we're running DB tests
+	t.Logf("RUN_DB_TESTS value: %s", os.Getenv("RUN_DB_TESTS"))
 
 	// Create database manager
 	manager, err := database.NewManager("")

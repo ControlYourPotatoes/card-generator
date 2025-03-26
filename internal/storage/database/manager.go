@@ -1,19 +1,19 @@
 package database
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"log"
 
 	"github.com/ControlYourPotatoes/card-generator/internal/storage/database/migration"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
 )
 
 // Manager handles database connections and initialization
 type Manager struct {
 	config      *Config
-	db          *sql.DB
+	pool        *pgxpool.Pool
 	initialized bool
 }
 
@@ -42,36 +42,65 @@ func NewManager(configPath string) (*Manager, error) {
 // Connect establishes a database connection
 func (m *Manager) Connect() error {
 	connStr := m.config.ConnectionString()
-	db, err := sql.Open("postgres", connStr)
+	
+	poolConfig, err := pgxpool.ParseConfig(connStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse connection string: %w", err)
+	}
+	
+	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	// Test the connection
-	if err := db.Ping(); err != nil {
-		db.Close()
+	if err := pool.Ping(context.Background()); err != nil {
+		pool.Close()
 		return fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	m.db = db
+	m.pool = pool
 	log.Println("Connected to database successfully")
 	return nil
 }
 
 // Initialize initializes the database with schema and migrations
 func (m *Manager) Initialize(migrationsDir string) error {
-	if m.db == nil {
+	if m.pool == nil {
 		return fmt.Errorf("database not connected")
 	}
 
 	// Run migrations
-	runner := migration.NewRunner(m.db, migrationsDir)
+	runner := migration.NewRunner(m.pool, migrationsDir)
 	if err := runner.Run(); err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
 	m.initialized = true
 	log.Println("Database initialized successfully")
+	return nil
+}
+
+// GetDB returns the database connection
+func (m *Manager) GetDB() *pgxpool.Pool {
+	return m.pool
+}
+
+// GetStore returns a new PostgreSQL store
+func (m *Manager) GetStore() (*PostgresStore, error) {
+	if !m.initialized {
+		return nil, fmt.Errorf("database not initialized")
+	}
+
+	return &PostgresStore{pool: m.pool}, nil
+}
+
+// Close closes the database connection
+func (m *Manager) Close() error {
+	if m.pool == nil {
+		return nil
+	}
+	m.pool.Close()
 	return nil
 }
 
@@ -100,26 +129,4 @@ func (m *Manager) InitWithTestData() error {
 	m.initialized = true
 	log.Println("Database initialized with test data")
 	return nil
-}
-
-// GetDB returns the database connection
-func (m *Manager) GetDB() *sql.DB {
-	return m.db
-}
-
-// GetStore returns a new PostgreSQL store
-func (m *Manager) GetStore() (*PostgresStore, error) {
-	if !m.initialized {
-		return nil, fmt.Errorf("database not initialized")
-	}
-
-	return NewPostgresStore(m.config.ConnectionString())
-}
-
-// Close closes the database connection
-func (m *Manager) Close() error {
-	if m.db == nil {
-		return nil
-	}
-	return m.db.Close()
 }

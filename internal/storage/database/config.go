@@ -40,10 +40,10 @@ func getEnvOrDefault(key, defaultValue string) string {
     return defaultValue
 }
 
-// ConnectionString returns a PostgreSQL connection string
+// ConnectionString returns a PostgreSQL connection string in pgx format
 func (c *Config) ConnectionString() string {
     return fmt.Sprintf(
-        "host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-        c.Host, c.Port, c.User, c.Password, c.Database, c.SSLMode,
+        "postgresql://%s:%s@%s:%s/%s?sslmode=%s",
+        c.User, c.Password, c.Host, c.Port, c.Database, c.SSLMode,
     )
 }

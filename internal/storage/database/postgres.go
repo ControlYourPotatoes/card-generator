@@ -1,33 +1,40 @@
 package database
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"log"
 	
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
 	"github.com/ControlYourPotatoes/card-generator/internal/storage/database/migration"
-	_ "github.com/lib/pq" // PostgreSQL driver
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // PostgresStore implements the Store interface using PostgreSQL
 type PostgresStore struct {
-	db *sql.DB
+	pool *pgxpool.Pool
 }
 
 // NewPostgresStore creates a new PostgreSQL store
 func NewPostgresStore(connString string) (*PostgresStore, error) {
-	db, err := sql.Open("postgres", connString)
+	// Create a connection pool
+	config, err := pgxpool.ParseConfig(connString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse connection string: %w", err)
+	}
+	
+	pool, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 	
 	// Test the connection
-	if err := db.Ping(); err != nil {
+	if err := pool.Ping(context.Background()); err != nil {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 	
-	return &PostgresStore{db: db}, nil
+	return &PostgresStore{pool: pool}, nil
 }
 
 // Save stores a card and returns its ID
@@ -52,7 +59,10 @@ func (s *PostgresStore) Delete(id string) error {
 
 // Close cleans up any resources
 func (s *PostgresStore) Close() error {
-	return s.db.Close()
+	if s.pool != nil {
+		s.pool.Close()
+	}
+	return nil
 }
 
 // InitSchema sets up the necessary database schema
@@ -64,7 +74,7 @@ func (s *PostgresStore) InitSchema() error {
 	}
 	
 	// Execute the schema
-	_, err = s.db.Exec(schema)
+	_, err = s.pool.Exec(context.Background(), schema)
 	if err != nil {
 		return fmt.Errorf("failed to initialize schema: %w", err)
 	}
@@ -90,7 +100,8 @@ func (s *PostgresStore) SeedTestData() error {
 	}
 	
 	for _, t := range cardTypes {
-		_, err := s.db.Exec(
+		_, err := s.pool.Exec(
+			context.Background(),
 			`INSERT INTO card_types (name) VALUES ($1) 
 			 ON CONFLICT (name) DO NOTHING`,
 			t,
@@ -110,7 +121,8 @@ func (s *PostgresStore) SeedTestData() error {
 	}
 	
 	for _, t := range traits {
-		_, err := s.db.Exec(
+		_, err := s.pool.Exec(
+			context.Background(),
 			`INSERT INTO traits (name) VALUES ($1) 
 			 ON CONFLICT (name) DO NOTHING`,
 			t,
@@ -130,7 +142,8 @@ func (s *PostgresStore) SeedTestData() error {
 	}
 	
 	for _, k := range keywords {
-		_, err := s.db.Exec(
+		_, err := s.pool.Exec(
+			context.Background(),
 			`INSERT INTO keywords (name) VALUES ($1) 
 			 ON CONFLICT (name) DO NOTHING`,
 			k,
@@ -197,4 +210,3 @@ func (s *PostgresStore) SeedTestData() error {
 	log.Println("Test data seeded successfully")
 	return nil
 }
-

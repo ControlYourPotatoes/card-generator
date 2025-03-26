@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -30,7 +31,8 @@ func (s *Seeder) SeedCardTypes() error {
 	}
 	
 	for _, t := range cardTypes {
-		_, err := s.store.db.Exec(
+		_, err := s.store.pool.Exec(
+			context.Background(),
 			`INSERT INTO card_types (name) VALUES ($1) 
 			 ON CONFLICT (name) DO NOTHING`,
 			t,
@@ -58,7 +60,8 @@ func (s *Seeder) SeedTraits() error {
 	}
 	
 	for _, t := range traits {
-		_, err := s.store.db.Exec(
+		_, err := s.store.pool.Exec(
+			context.Background(),
 			`INSERT INTO traits (name) VALUES ($1) 
 			 ON CONFLICT (name) DO NOTHING`,
 			t,
@@ -88,7 +91,8 @@ func (s *Seeder) SeedKeywords() error {
 	}
 	
 	for _, k := range keywords {
-		_, err := s.store.db.Exec(
+		_, err := s.store.pool.Exec(
+			context.Background(),
 			`INSERT INTO keywords (name) VALUES ($1) 
 			 ON CONFLICT (name) DO NOTHING`,
 			k,
