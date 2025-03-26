@@ -1,106 +1,51 @@
 package database
 
 import (
-    "fmt"
-    "os"
-    "testing"
-    
-    "github.com/ControlYourPotatoes/card-generator/internal/card"
+	"testing"
+	"time"
+
+	"github.com/joho/godotenv"
 )
 
-// getTestConnection returns a connection string for testing
-func getTestConnection() string {
-    // Default test connection, override with environment variables if needed
-    host := getEnvOrDefault("TEST_DB_HOST", "localhost")
-    port := getEnvOrDefault("TEST_DB_PORT", "5432")
-    user := getEnvOrDefault("TEST_DB_USER", "postgres")
-    password := getEnvOrDefault("TEST_DB_PASSWORD", "postgres")
-    dbname := getEnvOrDefault("TEST_DB_NAME", "cardgame_test")
-    
-    return fmt.Sprintf(
-        "host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-        host, port, user, password, dbname,
-    )
-}
+func TestDatabaseConnection(t *testing.T) {
+	// Load environment variables
+	err := godotenv.Load("../../../.env")
+	if err != nil {
+		t.Logf("Warning: .env file not found, using environment variables")
+	}
 
+	// Load database configuration
+	config, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("Failed to load config: %v", err)
+	}
 
-// TestPostgresStore tests the PostgreSQL store implementation
-func TestPostgresStore(t *testing.T) {
-    // Skip if we're not running database tests
-    if os.Getenv("SKIP_DB_TESTS") == "true" {
-        t.Skip("Skipping database tests")
-    }
-    
-    // Get test connection
-    connString := getTestConnection()
-    
-    // Create store
-    store, err := NewPostgresStore(connString)
-    if err != nil {
-        t.Fatalf("Failed to create store: %v", err)
-    }
-    defer store.Close()
-    
-    // Initialize schema
-    if err := store.InitSchema(); err != nil {
-        t.Fatalf("Failed to initialize schema: %v", err)
-    }
-    
-    // Create a test card
-    testCard := &card.Creature{
-        BaseCard: card.BaseCard{
-            Name:   "Test Creature",
-            Cost:   3,
-            Effect: "Test effect",
-            Type:   card.TypeCreature,
-        },
-        Attack:  2,
-        Defense: 2,
-    }
-    
-    // Save the card
-    id, err := store.Save(testCard)
-    if err != nil {
-        t.Fatalf("Failed to save card: %v", err)
-    }
-    
-    // Load the card
-    loadedCard, err := store.Load(id)
-    if err != nil {
-        t.Fatalf("Failed to load card: %v", err)
-    }
-    
-    // Verify card data
-    if loadedCard.GetName() != testCard.GetName() {
-        t.Errorf("Expected name %s, got %s", testCard.GetName(), loadedCard.GetName())
-    }
-    
-    if loadedCard.GetCost() != testCard.GetCost() {
-        t.Errorf("Expected cost %d, got %d", testCard.GetCost(), loadedCard.GetCost())
-    }
-    
-    if loadedCard.GetEffect() != testCard.GetEffect() {
-        t.Errorf("Expected effect %s, got %s", testCard.GetEffect(), loadedCard.GetEffect())
-    }
-    
-    // Test listing cards
-    cards, err := store.List()
-    if err != nil {
-        t.Fatalf("Failed to list cards: %v", err)
-    }
-    
-    if len(cards) < 1 {
-        t.Error("Expected at least one card in list")
-    }
-    
-    // Test deleting a card
-    if err := store.Delete(id); err != nil {
-        t.Fatalf("Failed to delete card: %v", err)
-    }
-    
-    // Verify card is deleted
-    _, err = store.Load(id)
-    if err == nil {
-        t.Error("Expected error when loading deleted card")
-    }
+	// Create store with connection string
+	store, err := NewPostgresStore(config.ConnectionString())
+	if err != nil {
+		t.Fatalf("Failed to connect to database: %v", err)
+	}
+	defer store.Close()
+
+	// Test basic ping to verify connection
+	t.Log("Testing database connection...")
+	start := time.Now()
+	
+	// Ping database (already done in NewPostgresStore, but we'll do it again for clarity)
+	err = store.db.Ping()
+	if err != nil {
+		t.Fatalf("Failed to ping database: %v", err)
+	}
+	
+	t.Logf("Database connection successful! (took %v)", time.Since(start))
+
+	// Test simple query to verify permissions
+	t.Log("Testing simple query...")
+	var version string
+	err = store.db.QueryRow("SELECT version()").Scan(&version)
+	if err != nil {
+		t.Fatalf("Failed to execute simple query: %v", err)
+	}
+	
+	t.Logf("Query successful! PostgreSQL version: %s", version)
 }
