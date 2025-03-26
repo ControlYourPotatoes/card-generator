@@ -3,7 +3,6 @@ package models
 import (
     "time"
     
-    "github.com/ControlYourPotatoes/card-generator/internal/core/card"
 )
 
 // CardModel represents a card in the database

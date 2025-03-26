@@ -8,7 +8,7 @@ import (
     "image/draw"
     "time"
 
-    "github.com/ControlYourPotatoes/card-generator/internal/card"
+    "github.com/ControlYourPotatoes/card-generator/internal/core/card"
 )
 
 // MockArtProcessor simulates fetching art with configurable behavior

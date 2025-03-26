@@ -6,8 +6,8 @@ import (
     "fmt"
     "log"
     
-    "github.com/ControlYourPotatoes/card-generator/internal/card"
-    _ "github.com/lib/pq" // PostgreSQL driver
+    "github.com/ControlYourPotatoes/card-generator/internal/core/card"
+    "github.com/lib/pq" // PostgreSQL driver
 )
 
 // PostgresStore implements the Store interface using PostgreSQL
