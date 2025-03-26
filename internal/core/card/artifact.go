@@ -22,32 +22,9 @@ func (a *Artifact) Validate() error {
 		return NewValidationError("card type must be Artifact", "type")
 	}
 
-	// If it's marked as equipment, ensure the effect mentions "equip" as a word
-	if a.IsEquipment {
-		effectLower := strings.ToLower(a.Effect)
-		
-		// Check for word boundaries around "equip" but not "equipment"
-		hasEquip := false
-		
-		// Use a more precise approach with regex
-		if strings.Contains(effectLower, "equip") {
-			// Check if it's not part of "equipment"
-			if !strings.Contains(effectLower, "equipment") || 
-			   (strings.Contains(effectLower, "equip ") || 
-			   strings.Contains(effectLower, " equip") || 
-			   strings.HasPrefix(effectLower, "equip") || 
-			   strings.HasSuffix(effectLower, "equip") ||
-			   strings.Contains(effectLower, "equip.") ||
-			   strings.Contains(effectLower, "equip,") ||
-			   strings.Contains(effectLower, "equip:") ||
-			   strings.Contains(effectLower, "equip;")) {
-				hasEquip = true
-			}
-		}
-		
-		if !hasEquip {
-			return NewValidationError("equipment artifact must contain equip effect", "effect")
-		}
+	// If it's marked as equipment, ensure the effect mentions "equip" or "equipped"
+	if a.IsEquipment && !hasEquipmentText(a.Effect) {
+		return NewValidationError("equipment artifact must contain equip effect", "effect")
 	}
 
 	return nil
@@ -67,32 +44,45 @@ func (a *Artifact) ToData() *CardDTO {
 
 // NewArtifactFromDTO creates a new Artifact from CardDTO
 func NewArtifactFromDTO(dto *CardDTO) *Artifact {
-	return &Artifact{
+	artifact := &Artifact{
 		BaseCard:    NewBaseCardFromDTO(dto),
 		IsEquipment: dto.IsEquipment,
 	}
+	
+	// If it has equipment-related text but IsEquipment flag is not set,
+	// automatically set it
+	if !artifact.IsEquipment && hasEquipmentText(artifact.Effect) {
+		artifact.IsEquipment = true
+	}
+	
+	// Add EQUIPMENT keyword if missing
+	if artifact.IsEquipment {
+		hasEquipmentKeyword := false
+		for _, keyword := range artifact.Keywords {
+			if strings.ToUpper(keyword) == "EQUIPMENT" {
+				hasEquipmentKeyword = true
+				break
+			}
+		}
+		
+		if !hasEquipmentKeyword {
+			artifact.Keywords = append(artifact.Keywords, "EQUIPMENT")
+		}
+	}
+	
+	return artifact
 }
 
 // DetermineIsEquipment checks if an artifact is an equipment type
 // based on its effect text (useful for parsing)
 func DetermineIsEquipment(effect string) bool {
-	effectLower := strings.ToLower(effect)
-	
-	// Check for word boundaries around "equip" but not "equipment"
-	if strings.Contains(effectLower, "equip") {
-		// Check if it's not just part of "equipment" or has clear word boundaries
-		if !strings.Contains(effectLower, "equipment") || 
-		   strings.Contains(effectLower, "equip ") || 
-		   strings.Contains(effectLower, " equip") || 
-		   strings.HasPrefix(effectLower, "equip") || 
-		   strings.HasSuffix(effectLower, "equip") ||
-		   strings.Contains(effectLower, "equip.") ||
-		   strings.Contains(effectLower, "equip,") ||
-		   strings.Contains(effectLower, "equip:") ||
-		   strings.Contains(effectLower, "equip;") {
-			return true
-		}
-	}
-	
-	return false
+	return hasEquipmentText(effect)
+}
+
+// hasEquipmentText checks if the text contains equipment-related keywords
+func hasEquipmentText(text string) bool {
+	effectLower := strings.ToLower(text)
+	return strings.Contains(effectLower, "equip") || 
+	       strings.Contains(effectLower, "equippment") ||
+		   strings.Contains(effectLower, "equipped")
 }

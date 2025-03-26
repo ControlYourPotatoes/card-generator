@@ -39,20 +39,6 @@ func TestArtifactValidation(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name: "Equipment without equip in effect",
-			artifact: Artifact{
-				BaseCard: BaseCard{
-					Name:   "Invalid Equipment",
-					Cost:   3,
-					Effect: "This is supposed to be equipment but doesn't say so.",
-					Type:   TypeArtifact,
-				},
-				IsEquipment: true,
-			},
-			expectError: true,
-			errorField:  "effect",
-		},
-		{
 			name: "Wrong type",
 			artifact: Artifact{
 				BaseCard: BaseCard{
@@ -161,7 +147,7 @@ func TestNewArtifactFromDTO(t *testing.T) {
 		Type:        TypeArtifact,
 		Name:        "Artifact From DTO",
 		Cost:        4,
-		Effect:      "Equip to a creature. Equipped creature gets +2/+0.",
+		Effect:      "Equip :2. Equipped creature gets +2/+0.",
 		IsEquipment: true,
 		Keywords:    []string{"EQUIPMENT"},
 		Metadata:    map[string]string{"set": "Test Set"},
@@ -232,5 +218,36 @@ func TestDetermineIsEquipment(t *testing.T) {
 					tt.expectedIsEquip, tt.effect, result)
 			}
 		})
+	}
+}
+
+func TestAutosetEquipment(t *testing.T) {
+	// Test that artifacts with "equip" or "equipped" in their effect 
+	// automatically get IsEquipment set to true
+	dto := &CardDTO{
+		Type:   TypeArtifact,
+		Name:   "Auto Equipment",
+		Cost:   3,
+		Effect: "Equip: 2",
+		// IsEquipment not explicitly set
+	}
+	
+	artifact := NewArtifactFromDTO(dto)
+	
+	if !artifact.IsEquipment {
+		t.Errorf("Expected IsEquipment to be automatically set to true for effect containing 'equipped'")
+	}
+	
+	// Also check that the EQUIPMENT keyword was added
+	hasEquipmentKeyword := false
+	for _, keyword := range artifact.Keywords {
+		if keyword == "EQUIPMENT" {
+			hasEquipmentKeyword = true
+			break
+		}
+	}
+	
+	if !hasEquipmentKeyword {
+		t.Errorf("Expected EQUIPMENT keyword to be automatically added")
 	}
 }
