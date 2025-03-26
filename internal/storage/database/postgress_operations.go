@@ -7,6 +7,7 @@ import (
 
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // saveCard stores a card in the database
@@ -17,13 +18,14 @@ func (s *PostgresStore) saveCard(c card.Card) (string, error) {
 	}
 	
 	// Start a transaction
-	tx, err := s.pool.Begin(context.Background())
+	ctx := context.Background()
+	tx, err := s.pool.Begin(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer func() {
 		if err != nil {
-			tx.Rollback(context.Background())
+			tx.Rollback(ctx)
 		}
 	}()
 	
