@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ControlYourPotatoes/card-generator/internal/storage/database/migration"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
@@ -70,10 +69,13 @@ func (m *Manager) Initialize(migrationsDir string) error {
 		return fmt.Errorf("database not connected")
 	}
 
-	// Run migrations
-	runner := migration.NewRunner(m.pool, migrationsDir)
-	if err := runner.Run(); err != nil {
-		return fmt.Errorf("failed to run migrations: %w", err)
+	// Create PostgreSQL store
+	store := &PostgresStore{pool: m.pool}
+	
+	// Initialize schema directly rather than using the runner
+	// This avoids the sql.DB vs pgxpool.Pool type mismatch
+	if err := store.InitSchema(); err != nil {
+		return fmt.Errorf("failed to initialize schema: %w", err)
 	}
 
 	m.initialized = true
@@ -106,12 +108,8 @@ func (m *Manager) Close() error {
 
 // InitWithTestData initializes the database and seeds test data
 func (m *Manager) InitWithTestData() error {
-	// Create PostgreSQL store
-	store, err := NewPostgresStore(m.config.ConnectionString())
-	if err != nil {
-		return fmt.Errorf("failed to create store: %w", err)
-	}
-	defer store.Close()
+	// Create PostgreSQL store directly with the pool
+	store := &PostgresStore{pool: m.pool}
 
 	// Initialize schema
 	if err := store.InitSchema(); err != nil {

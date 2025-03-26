@@ -1,7 +1,7 @@
 package migration
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -10,38 +10,44 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Runner manages database migrations
 type Runner struct {
-	db            *sql.DB
+	pool          *pgxpool.Pool
 	migrationsDir string
 }
 
 // NewRunner creates a new migration runner
-func NewRunner(db *sql.DB, migrationsDir string) *Runner {
+func NewRunner(pool *pgxpool.Pool, migrationsDir string) *Runner {
 	return &Runner{
-		db:            db,
+		pool:          pool,
 		migrationsDir: migrationsDir,
 	}
 }
 
 // EnsureMigrationsTable creates the migrations table if it doesn't exist
 func (r *Runner) EnsureMigrationsTable() error {
-	_, err := r.db.Exec(`
-		CREATE TABLE IF NOT EXISTS migrations (
+	_, err := r.pool.Exec(
+		context.Background(),
+		`CREATE TABLE IF NOT EXISTS migrations (
 			id SERIAL PRIMARY KEY,
 			version INTEGER NOT NULL UNIQUE,
 			name VARCHAR(255) NOT NULL,
 			applied_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-		)
-	`)
+		)`,
+	)
 	return err
 }
 
 // GetAppliedMigrations returns a map of already applied migrations
 func (r *Runner) GetAppliedMigrations() (map[int]bool, error) {
-	rows, err := r.db.Query("SELECT version FROM migrations ORDER BY version")
+	rows, err := r.pool.Query(
+		context.Background(),
+		"SELECT version FROM migrations ORDER BY version",
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -133,30 +139,32 @@ func (r *Runner) Run() error {
 		}
 		
 		// Start a transaction
-		tx, err := r.db.Begin()
+		ctx := context.Background()
+		tx, err := r.pool.Begin(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to begin transaction: %w", err)
 		}
 		
 		// Execute migration
-		_, err = tx.Exec(string(content))
+		_, err = tx.Exec(ctx, string(content))
 		if err != nil {
-			tx.Rollback()
+			tx.Rollback(ctx)
 			return fmt.Errorf("failed to execute migration %s: %w", filePath, err)
 		}
 		
 		// Record migration
 		_, err = tx.Exec(
+			ctx,
 			"INSERT INTO migrations (version, name) VALUES ($1, $2)",
 			version, fileName,
 		)
 		if err != nil {
-			tx.Rollback()
+			tx.Rollback(ctx)
 			return fmt.Errorf("failed to record migration %s: %w", filePath, err)
 		}
 		
 		// Commit transaction
-		if err = tx.Commit(); err != nil {
+		if err = tx.Commit(ctx); err != nil {
 			return fmt.Errorf("failed to commit transaction: %w", err)
 		}
 		
@@ -168,20 +176,23 @@ func (r *Runner) Run() error {
 
 // RollbackLast reverts the last applied migration
 func (r *Runner) RollbackLast() error {
+	ctx := context.Background()
+	
 	// Find the last applied migration
 	var (
 		version int
 		name    string
 	)
 	
-	err := r.db.QueryRow(`
-		SELECT version, name FROM migrations
+	err := r.pool.QueryRow(
+		ctx,
+		`SELECT version, name FROM migrations
 		ORDER BY version DESC
-		LIMIT 1
-	`).Scan(&version, &name)
+		LIMIT 1`,
+	).Scan(&version, &name)
 	
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err.Error() == "no rows in result set" {
 			log.Println("No migrations to rollback")
 			return nil
 		}
@@ -203,27 +214,27 @@ func (r *Runner) RollbackLast() error {
 	}
 	
 	// Start a transaction
-	tx, err := r.db.Begin()
+	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	
 	// Execute rollback
-	_, err = tx.Exec(string(content))
+	_, err = tx.Exec(ctx, string(content))
 	if err != nil {
-		tx.Rollback()
+		tx.Rollback(ctx)
 		return fmt.Errorf("failed to execute rollback %s: %w", rollbackPath, err)
 	}
 	
 	// Remove migration record
-	_, err = tx.Exec("DELETE FROM migrations WHERE version = $1", version)
+	_, err = tx.Exec(ctx, "DELETE FROM migrations WHERE version = $1", version)
 	if err != nil {
-		tx.Rollback()
+		tx.Rollback(ctx)
 		return fmt.Errorf("failed to remove migration record: %w", err)
 	}
 	
 	// Commit transaction
-	if err = tx.Commit(); err != nil {
+	if err = tx.Commit(ctx); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 	
