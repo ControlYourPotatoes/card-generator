@@ -7,7 +7,7 @@ import (
     "image/png"
     "net/http"
     
-    "github.com/ControlYourPotatoes/card-generator/internal/card"
+    "github.com/ControlYourPotatoes/card-generator/internal/core/card"
 )
 
 // placeholderProcessor implements ArtProcessor using placeholder images

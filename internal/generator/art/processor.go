@@ -2,7 +2,7 @@ package art
 
 import (
     "image"
-    "github.com/ControlYourPotatoes/card-generator/internal/card"
+    "github.com/ControlYourPotatoes/card-generator/internal/core/card"
 )
 
 // ArtProcessor defines how card art should be processed
