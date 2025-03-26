@@ -4,11 +4,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
-	"github.com/lib/pq" // PostgreSQL driver
+	_"github.com/lib/pq"
 )
 
 // saveCard stores a card in the database
