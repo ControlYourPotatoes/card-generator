@@ -1,7 +1,7 @@
 package store
 
 import (
-	"github.com/ControlYourPotatoes/card-generator/internal/card"
+	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
 )
 
 // Store defines the interface for card storage operations
