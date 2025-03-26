@@ -6,6 +6,7 @@ import (
 	"log"
 	
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/internal/storage/database/migration"
 	_ "github.com/lib/pq" // PostgreSQL driver
 )
 
@@ -57,10 +58,13 @@ func (s *PostgresStore) Close() error {
 // InitSchema sets up the necessary database schema
 func (s *PostgresStore) InitSchema() error {
 	// Read the schema definition from the migration file
-	schema := getInitialSchema()
+	schema, err := migration.GetInitialSchema()
+	if err != nil {
+		return fmt.Errorf("failed to get initial schema: %w", err)
+	}
 	
 	// Execute the schema
-	_, err := s.db.Exec(schema)
+	_, err = s.db.Exec(schema)
 	if err != nil {
 		return fmt.Errorf("failed to initialize schema: %w", err)
 	}

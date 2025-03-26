@@ -14,14 +14,14 @@ import (
 
 // Runner manages database migrations
 type Runner struct {
-	db           *sql.DB
+	db            *sql.DB
 	migrationsDir string
 }
 
 // NewRunner creates a new migration runner
 func NewRunner(db *sql.DB, migrationsDir string) *Runner {
 	return &Runner{
-		db:           db,
+		db:            db,
 		migrationsDir: migrationsDir,
 	}
 }
@@ -62,68 +62,7 @@ func (r *Runner) GetAppliedMigrations() (map[int]bool, error) {
 // FindMigrationFiles finds all SQL migration files in the migrations directory
 func (r *Runner) FindMigrationFiles() (map[int]string, error) {
 	// Pattern to match migration files like: 001_initial_schema.sql
-	pattern := regexp.MustCompile(`^(\d+)_(.+)\.sqlpackage migration
-
-import (
-	"database/sql"
-	"fmt"
-	"io/ioutil"
-	"log"
-	"path/filepath"
-	"regexp"
-	"sort"
-	"strconv"
-	"strings"
-)
-
-// Runner manages database migrations
-type Runner struct {
-	db           *sql.DB
-	migrationsDir string
-}
-
-// NewRunner creates a new migration runner
-func NewRunner(db *sql.DB, migrationsDir string) *Runner {
-	return &Runner{
-		db:           db,
-		migrationsDir: migrationsDir,
-	}
-}
-
-// EnsureMigrationsTable creates the migrations table if it doesn't exist
-func (r *Runner) EnsureMigrationsTable() error {
-	_, err := r.db.Exec(`
-		CREATE TABLE IF NOT EXISTS migrations (
-			id SERIAL PRIMARY KEY,
-			version INTEGER NOT NULL UNIQUE,
-			name VARCHAR(255) NOT NULL,
-			applied_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-		)
-	`)
-	return err
-}
-
-// GetAppliedMigrations returns a map of already applied migrations
-func (r *Runner) GetAppliedMigrations() (map[int]bool, error) {
-	rows, err := r.db.Query("SELECT version FROM migrations ORDER BY version")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	applied := make(map[int]bool)
-	for rows.Next() {
-		var version int
-		if err := rows.Scan(&version); err != nil {
-			return nil, err
-		}
-		applied[version] = true
-	}
-
-	return applied, nil
-}
-
-)
+	pattern := regexp.MustCompile(`^(\d+)_(.+)\.sql$`)
 	
 	files, err := ioutil.ReadDir(r.migrationsDir)
 	if err != nil {
