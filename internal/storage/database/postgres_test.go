@@ -3,6 +3,7 @@ package database_test
 import (
 	"os"
 	"testing"
+	"path/filepath"
 
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
 	"github.com/ControlYourPotatoes/card-generator/internal/storage/database"
@@ -10,13 +11,50 @@ import (
 )
 
 func setupTestDB(t *testing.T) *database.PostgresStore {
-	// Load environment variables
-	err := godotenv.Load("../../../.env")
-	if err != nil {
-		t.Logf(".env file loaded successfully")
-	} else {
-		t.Logf("Warning: .env file not found, using environment variables")
+	// Load environment variables from multiple possible locations
+	envPaths := []string{
+		".env",
+		"../.env",
+		"../../.env",
+		"../../../.env",
 	}
+	
+	envLoaded := false
+	for _, path := range envPaths {
+		absPath, _ := filepath.Abs(path)
+		if _, err := os.Stat(absPath); err == nil {
+			t.Logf("Loading environment from %s", absPath)
+			if err := godotenv.Load(absPath); err != nil {
+				t.Logf("Warning: error loading %s: %v", absPath, err)
+			} else {
+				envLoaded = true
+				break
+			}
+		}
+	}
+	
+	if !envLoaded {
+		t.Logf("No .env file found, using environment variables")
+		
+		// Set default test database settings if not already provided by environment
+		if os.Getenv("DB_HOST") == "" {
+			os.Setenv("DB_HOST", "localhost")
+			os.Setenv("DB_PORT", "5432")
+			os.Setenv("DB_USER", "postgres")
+			os.Setenv("DB_PASSWORD", "postgres")
+			os.Setenv("DB_NAME", "card_test")
+			os.Setenv("DB_SSLMODE", "disable")
+			t.Logf("Using default local database settings")
+		}
+	}
+
+	// Log DB connection info for debugging
+	t.Logf("Database config: host=%s, port=%s, user=%s, database=%s, sslmode=%s",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_SSLMODE"))
 
 	// Log if we're running DB tests
 	t.Logf("RUN_DB_TESTS value: %s", os.Getenv("RUN_DB_TESTS"))
