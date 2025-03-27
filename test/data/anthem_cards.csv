@@ -1,0 +1,30 @@
+Name,Cost,Effect
+Nature's Dance,2,"During your draw phase, you may draw an extra card. "
+War Cry,3,All of your creatures gain +1/1.
+Goblin Assembly,3,At the end of your draw phase; create a 1/1 Goblin Token.
+Mana Droid,3,Whenever you charge mana you may draw a card. 
+Lair Entrance,3,Whenever a creature you control with Combat Counters attacks; you may draw 1 card.
+Tavern,4,Creatures you cast cost 1 less
+Royal Banquet,4,END PHASE - If at least 3 creatures Attacked and weren't blocked; Deal 1 damage to any Player.
+Vendor Street,4,You may play an extra mana card during your turn. 
+Blood Vial,3,2 of your Creatures activate a Tap Effect during a Turn - Draw 1 card and add 1 mana to your Mana Pool until the end of the turn. 
+Vampire Castle,4,Vampires you control gain VIGILANCE.
+Mount Olympus,3,"Whenever you cast a creature with cost 5 or more, create 1 Mana Rock."
+Database,4,"END OF ANY TURN - If you tapped at least 3 Artifacts this turn, create a 1/1 Artifact Creature token with RELOAD."
+Frog Song,3,Whenever your creature's effect triggers - You may GUIDE 1 and draw 1 card. 
+Demon Pit,2,"The first time you OFFER during your turn, you may OFFER to change 1 card in their mana pool for 1 in their hand. Generate 1 mana rock for each contract. "
+Fine Print,4,"At 10 Souls - Once during your turn, make an OFFER a command for a player of your choice. - At 20 Souls - Once during your turn, an OFFER is a command - Only one effect resolves per turn."
+Win / Win,3,If none accept your Offer; create one Mana Rock.
+Book of Spells,3,You can play Spells as though they were incantations. They are treated as both Spells and Incantations. 
+Gambler's Bounty,3,ON UPKEEP - You may throw a coin: ON HEADS - create 2 Mana Rocks. ON TAILS - Destroy a creature you control.
+Tombstone,3,Whenever a Creature in your drop zone is played to your field; generate 1 Mana Rock. 
+Mana Harmonics,4,"All your creatures gain ""Tap; add 1 mana to your mana pool until the end of the turn""."
+Token Tide,3,"All your Token creatures gain ""Tap; add 1 mana to your mana pool until the end of the turn""."
+Counterflux Reservoir,3,Whenever an opponent uses an Incantation during your turn - Create 1 Mana Rock. 
+Rallying Cry,3,All your creatures gain BREAKTHROUGH.
+Corruption Engine,3,When a creature you control dies - Add 1 counter to this card. When at 3 counters - Create 1 Corrupted Mana and reduce 3 counters from this card. 
+Path of the Seer,2,ON CHARGE - GUIDE 2. 
+Spiteful Bargain,3,"WHEN YOU'RE DENIED AN OFFER – Select a creature your opponent controls, tap it. Gain 1 counter. ON 3 COUNTERS – Consume the counters and deal 2 damage divided as you choose among opponents."
+Arcane Foundry,4,You can tap your Artifacts to pay for 1 mana when playing an Artifact.
+Twin Rhythms,3,Your Upkeep effects trigger twice.
+Dragonheart Incubation,3,"ETB - Add 1 counter to this card. Whenever there's a BOND in your Field, add 1 Counter ; UPKEEP - Consume all counters on this card and create that many 4/4 Dragon Token"
