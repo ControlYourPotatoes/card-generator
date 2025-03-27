@@ -209,3 +209,9 @@ func (s *PostgresStore) SeedTestData() error {
 	log.Println("Test data seeded successfully")
 	return nil
 }
+
+// GetPool returns the underlying connection pool
+// This is used by utilities like the database cleaner
+func (s *PostgresStore) GetPool() *pgxpool.Pool {
+	return s.pool
+}
