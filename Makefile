@@ -20,17 +20,13 @@ run-importer: build-importer
 	@echo "Running card import to database..."
 	@./bin/importer -type=anthem -file=test/data/anthem_cards.csv
 
-# Clean build artifacts
-clean:
-	@echo "Cleaning build artifacts..."
-	@rm -rf bin/
-
 # Clean database (remove all seed data)
 clean-db: build-db-cleaner
 	@echo "WARNING: This will delete ALL cards from the database!"
-	@echo "Are you sure? [y/N] " && read ans && [ ${ans:-N} = y ]
-	@echo "Cleaning database..."
-	@./bin/db-cleaner -confirm
+	@echo "Running database cleaner with -confirm flag..."
+	@.\bin\db-cleaner -confirm
+
+
 
 # Create directories needed for the project
 init:
