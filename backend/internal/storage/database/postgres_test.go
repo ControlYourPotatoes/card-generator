@@ -5,8 +5,8 @@ import (
 	"testing"
 	"path/filepath"
 
-	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
-	"github.com/ControlYourPotatoes/card-generator/internal/storage/database"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/storage/database"
 	"github.com/joho/godotenv"
 )
 

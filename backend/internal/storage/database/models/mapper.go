@@ -2,7 +2,7 @@ package models
 
 import (
 
-	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
 )
 
 

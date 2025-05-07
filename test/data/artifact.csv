@@ -1,0 +1,30 @@
+Type,Name,Cost,Effect
+Artifact,Enchanted Mace,2,pay 1 - Equip to target creature. Equipped creature gains CRITICAL.
+Artifact,Lightweight Sandals,1,pay 1 - Equip to target creature. Equipped creature gains HASTE.
+Artifact,Fangs,2,pay 2 - Equip to target creature. Equipped creature gains DMG GAIN.
+Artifact,Sleight of Hand,2,Tap; Draw 1 card. 
+Artifact,Mana Tree,2,Tap; Add 1 mana to your mana pool until the end of the turn. 
+Artifact,Magic Shield,3,2cost; Equip to a creature you control - Equipped creature cannot be targeted by your opponent's card effects. 
+Artifact,Mana Portal ,4,"tap; Add 1 mana to your mana pool until the end of the turn - Once per turn, you may replace one of your mana cards with one card in your hand."
+Artifact,Dark Dealings,3,"Tap - Add 1 mana to your mana pool until the end of the turn - Once per turn, you may destroy 1 Mana Card and add 1mana to your Mana Pool until the end of the turn. "
+Artifact,Truesight Helmet,2,pay 2 - Equip to target creature. Equipped creature gains FACEOFF.
+Artifact,Exalted Weapon,3,pay 2 - Equip to target creature. Equipped creature gains DOUBLE STRIKE.
+Artifact,Mana Conductor,3,Tap; Send 1 card from your hand to the bottom of the deck; create 1 mana rock. 
+Artifact,The Gods' Blessing,3,pay 2 - Equip to target creature. Equipped creature gains INDESTRUCTIBLE
+Artifact,Weapons Rack,4,"Tap; For each Artifact that equips in your field, your creatures gain +1/1 until the end of the turn."
+Artifact,Shadowveil Shroud,3,Tap pay 3; Equip to target creature. Equipped creature gains Evasive.
+Artifact,Corrupted Mana Tree,3,Tap pay 1; Create 1 Corrupted Mana Rock.
+Artifact,Unholy Grimoire,3,Tap; Destroy 1 Zombie you control; Create 1 Corrupted Mana Rock
+Artifact,Grim Gauntlet,2,Tap; Create a 1/1 Zombie Token.
+Artifact,Elemental Well,4,Tap; Add 2 mana to your mana pool until the end of the turn. 
+Artifact,Crystal Nexus,3,Tap; Create 1 Mana Rock.
+Artifact,Foundry Stone,4,"TAP - GUIDE 1, you may reveal an Artifact from those cards and add it to your hand. Artifacts you play cost 1 less."
+Artifact,Shifting Relic,4,Pay 2 - Become a copy of target creature or artifact until the end of the turn. This card is treated as both an Artifact and a Creature when copying a Creature.
+Artifact,Insight Orb,3,Tap - Add 1 mana to your mana pool and draw a card.
+Artifact,Trailblazer’s Spear,2,1 - Equip to target creature you control. Equipped creature gains BREAKTHROUGH and ON ATTACK - GUIDE 1.
+Artifact,Resonant Mana Node,3,Tap; Add 1 mana to your mana pool until the end of the turn - Reconfigure
+Artifact,Runes of Configuration,3,TAP - target Artifact gains RECONFIGURE
+Artifact,Automaton Forge,3,TAP - Create a 1/1 Construct Token with RECONFIGURE
+Artifact,Battleplate,2,"Pay 2 - Equip to target creature you control. Equipped Creature gains +2/2 and BREAKTHROUGH. ; When Equipping to Construct, Pay 0. "
+Artifact,Machinist’s Reservoir,4,"Whenever another Artifact is tapped under your control - Gain 1 Counter. 
+ TAP - Consume 3 counters, draw 1 card; TAP consume 6 counters - All activated abilities cost 2 less until the end of the turn; TAP - Consume 12 counters - Untap all your Artifacts"

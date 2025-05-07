@@ -33,6 +33,11 @@ func main() {
 	}
 	defer dbManager.Close()
 
+	// Initialize the database first
+	if err := dbManager.Initialize(""); err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+
 	// Get database store for direct connection
 	store, err := dbManager.GetStore()
 	if err != nil {

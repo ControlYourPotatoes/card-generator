@@ -1,4 +1,4 @@
-module github.com/ControlYourPotatoes/card-generator
+module github.com/ControlYourPotatoes/card-generator/backend
 
 go 1.23.3
 
