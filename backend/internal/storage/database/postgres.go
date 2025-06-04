@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	
+
 	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
 	"github.com/ControlYourPotatoes/card-generator/internal/storage/database/migration"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -22,17 +22,17 @@ func NewPostgresStore(connString string) (*PostgresStore, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse connection string: %w", err)
 	}
-	
+
 	pool, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
-	
+
 	// Test the connection
 	if err := pool.Ping(context.Background()); err != nil {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
-	
+
 	return &PostgresStore{pool: pool}, nil
 }
 
@@ -71,13 +71,13 @@ func (s *PostgresStore) InitSchema() error {
 	if err != nil {
 		return fmt.Errorf("failed to get initial schema: %w", err)
 	}
-	
+
 	// Execute the schema
 	_, err = s.pool.Exec(context.Background(), schema)
 	if err != nil {
 		return fmt.Errorf("failed to initialize schema: %w", err)
 	}
-	
+
 	log.Println("Database schema initialized")
 	return nil
 }
@@ -88,7 +88,7 @@ func (s *PostgresStore) SeedTestData() error {
 	if err := s.InitSchema(); err != nil {
 		return err
 	}
-	
+
 	// Create card types if they don't exist
 	cardTypes := []string{
 		string(card.TypeCreature),
@@ -97,7 +97,7 @@ func (s *PostgresStore) SeedTestData() error {
 		string(card.TypeIncantation),
 		string(card.TypeAnthem),
 	}
-	
+
 	for _, t := range cardTypes {
 		_, err := s.pool.Exec(
 			context.Background(),
@@ -109,7 +109,7 @@ func (s *PostgresStore) SeedTestData() error {
 			return fmt.Errorf("failed to seed card type %s: %w", t, err)
 		}
 	}
-	
+
 	// Create some traits
 	traits := []string{
 		string(card.TraitBeast),
@@ -118,7 +118,7 @@ func (s *PostgresStore) SeedTestData() error {
 		string(card.TraitDemon),
 		string(card.TraitAngel),
 	}
-	
+
 	for _, t := range traits {
 		_, err := s.pool.Exec(
 			context.Background(),
@@ -130,7 +130,7 @@ func (s *PostgresStore) SeedTestData() error {
 			return fmt.Errorf("failed to seed trait %s: %w", t, err)
 		}
 	}
-	
+
 	// Create some keywords
 	keywords := []string{
 		"HASTE",
@@ -139,7 +139,7 @@ func (s *PostgresStore) SeedTestData() error {
 		"DAMAGE",
 		"BUFF",
 	}
-	
+
 	for _, k := range keywords {
 		_, err := s.pool.Exec(
 			context.Background(),
@@ -151,7 +151,7 @@ func (s *PostgresStore) SeedTestData() error {
 			return fmt.Errorf("failed to seed keyword %s: %w", k, err)
 		}
 	}
-	
+
 	// Create sample cards
 	// 1. Create a creature
 	creature := &card.Creature{
@@ -166,12 +166,12 @@ func (s *PostgresStore) SeedTestData() error {
 		Defense: 4,
 		Trait:   card.TraitDragon,
 	}
-	
+
 	_, err := s.Save(creature)
 	if err != nil {
 		return fmt.Errorf("failed to seed creature: %w", err)
 	}
-	
+
 	// 2. Create a spell
 	spell := &card.Spell{
 		BaseCard: card.BaseCard{
@@ -183,12 +183,12 @@ func (s *PostgresStore) SeedTestData() error {
 		},
 		TargetType: "Creature",
 	}
-	
+
 	_, err = s.Save(spell)
 	if err != nil {
 		return fmt.Errorf("failed to seed spell: %w", err)
 	}
-	
+
 	// 3. Create an artifact
 	artifact := &card.Artifact{
 		BaseCard: card.BaseCard{
@@ -200,12 +200,12 @@ func (s *PostgresStore) SeedTestData() error {
 		},
 		IsEquipment: true,
 	}
-	
+
 	_, err = s.Save(artifact)
 	if err != nil {
 		return fmt.Errorf("failed to seed artifact: %w", err)
 	}
-	
+
 	log.Println("Test data seeded successfully")
 	return nil
 }

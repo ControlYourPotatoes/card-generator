@@ -53,29 +53,29 @@ type StorageConfig struct {
 
 // GeneratorConfig holds card generation configuration
 type GeneratorConfig struct {
-	ImageWidth       int                    `yaml:"image_width"`
-	ImageHeight      int                    `yaml:"image_height"`
-	DPI              int                    `yaml:"dpi"`
-	Quality          int                    `yaml:"quality"`
-	Format           string                 `yaml:"format"`
-	TemplatesPath    string                 `yaml:"templates_path"`
-	FontsPath        string                 `yaml:"fonts_path"`
-	DefaultFont      string                 `yaml:"default_font"`
-	TextRendering    TextRenderingConfig    `yaml:"text_rendering"`
-	ArtProcessing    ArtProcessingConfig    `yaml:"art_processing"`
-	ParallelJobs     int                    `yaml:"parallel_jobs"`
-	EnableCaching    bool                   `yaml:"enable_caching"`
-	CacheDirectory   string                 `yaml:"cache_directory"`
+	ImageWidth     int                 `yaml:"image_width"`
+	ImageHeight    int                 `yaml:"image_height"`
+	DPI            int                 `yaml:"dpi"`
+	Quality        int                 `yaml:"quality"`
+	Format         string              `yaml:"format"`
+	TemplatesPath  string              `yaml:"templates_path"`
+	FontsPath      string              `yaml:"fonts_path"`
+	DefaultFont    string              `yaml:"default_font"`
+	TextRendering  TextRenderingConfig `yaml:"text_rendering"`
+	ArtProcessing  ArtProcessingConfig `yaml:"art_processing"`
+	ParallelJobs   int                 `yaml:"parallel_jobs"`
+	EnableCaching  bool                `yaml:"enable_caching"`
+	CacheDirectory string              `yaml:"cache_directory"`
 }
 
 // TextRenderingConfig holds text rendering configuration
 type TextRenderingConfig struct {
-	DefaultFontSize   float64           `yaml:"default_font_size"`
-	LineSpacing       float64           `yaml:"line_spacing"`
-	DefaultColor      string            `yaml:"default_color"`
-	AntiAliasing      bool              `yaml:"anti_aliasing"`
-	FontCache         bool              `yaml:"font_cache"`
-	CustomFonts       map[string]string `yaml:"custom_fonts"`
+	DefaultFontSize float64           `yaml:"default_font_size"`
+	LineSpacing     float64           `yaml:"line_spacing"`
+	DefaultColor    string            `yaml:"default_color"`
+	AntiAliasing    bool              `yaml:"anti_aliasing"`
+	FontCache       bool              `yaml:"font_cache"`
+	CustomFonts     map[string]string `yaml:"custom_fonts"`
 }
 
 // ArtProcessingConfig holds art processing configuration
@@ -198,7 +198,7 @@ func getConfigPath(env string) string {
 	if env == "" {
 		env = getEnv("APP_ENV", "development")
 	}
-	
+
 	configDir := getEnv("CONFIG_DIR", "./config")
 	return filepath.Join(configDir, fmt.Sprintf("config.%s.yaml", env))
 }
@@ -375,4 +375,4 @@ func (db *DatabaseConfig) GetConnectionString() string {
 	default:
 		return ""
 	}
-} 
+}

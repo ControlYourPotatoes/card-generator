@@ -29,7 +29,7 @@ func (s *Seeder) SeedCardTypes() error {
 		string(card.TypeIncantation),
 		string(card.TypeAnthem),
 	}
-	
+
 	for _, t := range cardTypes {
 		_, err := s.store.pool.Exec(
 			context.Background(),
@@ -41,7 +41,7 @@ func (s *Seeder) SeedCardTypes() error {
 			return fmt.Errorf("failed to seed card type %s: %w", t, err)
 		}
 	}
-	
+
 	log.Println("Seeded card types")
 	return nil
 }
@@ -58,7 +58,7 @@ func (s *Seeder) SeedTraits() error {
 		string(card.TraitAncient),
 		string(card.TraitDivine),
 	}
-	
+
 	for _, t := range traits {
 		_, err := s.store.pool.Exec(
 			context.Background(),
@@ -70,7 +70,7 @@ func (s *Seeder) SeedTraits() error {
 			return fmt.Errorf("failed to seed trait %s: %w", t, err)
 		}
 	}
-	
+
 	log.Println("Seeded traits")
 	return nil
 }
@@ -89,7 +89,7 @@ func (s *Seeder) SeedKeywords() error {
 		"FLYING",
 		"IMMUNE",
 	}
-	
+
 	for _, k := range keywords {
 		_, err := s.store.pool.Exec(
 			context.Background(),
@@ -101,7 +101,7 @@ func (s *Seeder) SeedKeywords() error {
 			return fmt.Errorf("failed to seed keyword %s: %w", k, err)
 		}
 	}
-	
+
 	log.Println("Seeded keywords")
 	return nil
 }
@@ -192,7 +192,7 @@ func (s *Seeder) SeedSampleCards() error {
 			Continuous: true,
 		},
 	}
-	
+
 	// Save each card
 	for _, c := range cards {
 		_, err := s.store.Save(c)
@@ -200,7 +200,7 @@ func (s *Seeder) SeedSampleCards() error {
 			return fmt.Errorf("failed to seed card %s: %w", c.GetName(), err)
 		}
 	}
-	
+
 	log.Println("Seeded sample cards")
 	return nil
 }
@@ -211,27 +211,27 @@ func (s *Seeder) SeedAll() error {
 	if err := s.store.InitSchema(); err != nil {
 		return err
 	}
-	
+
 	// Seed card types
 	if err := s.SeedCardTypes(); err != nil {
 		return err
 	}
-	
+
 	// Seed traits
 	if err := s.SeedTraits(); err != nil {
 		return err
 	}
-	
+
 	// Seed keywords
 	if err := s.SeedKeywords(); err != nil {
 		return err
 	}
-	
+
 	// Seed sample cards
 	if err := s.SeedSampleCards(); err != nil {
 		return err
 	}
-	
+
 	log.Println("Database seeded successfully")
 	return nil
 }

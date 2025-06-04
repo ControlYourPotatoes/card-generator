@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -69,31 +69,31 @@ func (r *Runner) GetAppliedMigrations() (map[int]bool, error) {
 func (r *Runner) FindMigrationFiles() (map[int]string, error) {
 	// Pattern to match migration files like: 001_initial_schema.sql
 	pattern := regexp.MustCompile(`^(\d+)_(.+)\.sql$`)
-	
+
 	files, err := ioutil.ReadDir(r.migrationsDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read migrations directory: %w", err)
 	}
-	
+
 	migrations := make(map[int]string)
 	for _, file := range files {
 		if file.IsDir() {
 			continue
 		}
-		
+
 		matches := pattern.FindStringSubmatch(file.Name())
 		if matches == nil {
 			continue
 		}
-		
+
 		version, err := strconv.Atoi(matches[1])
 		if err != nil {
 			return nil, fmt.Errorf("invalid migration version: %s", matches[1])
 		}
-		
+
 		migrations[version] = filepath.Join(r.migrationsDir, file.Name())
 	}
-	
+
 	return migrations, nil
 }
 
@@ -102,56 +102,56 @@ func (r *Runner) Run() error {
 	if err := r.EnsureMigrationsTable(); err != nil {
 		return fmt.Errorf("failed to create migrations table: %w", err)
 	}
-	
+
 	applied, err := r.GetAppliedMigrations()
 	if err != nil {
 		return fmt.Errorf("failed to get applied migrations: %w", err)
 	}
-	
+
 	migrations, err := r.FindMigrationFiles()
 	if err != nil {
 		return fmt.Errorf("failed to find migration files: %w", err)
 	}
-	
+
 	// Get sorted versions
 	var versions []int
 	for v := range migrations {
 		versions = append(versions, v)
 	}
 	sort.Ints(versions)
-	
+
 	// Run each migration in order
 	for _, version := range versions {
 		if applied[version] {
 			log.Printf("Migration %d already applied, skipping", version)
 			continue
 		}
-		
+
 		filePath := migrations[version]
 		fileName := filepath.Base(filePath)
-		
+
 		log.Printf("Applying migration %d: %s", version, fileName)
-		
+
 		// Read migration content
 		content, err := ioutil.ReadFile(filePath)
 		if err != nil {
 			return fmt.Errorf("failed to read migration file %s: %w", filePath, err)
 		}
-		
+
 		// Start a transaction
 		ctx := context.Background()
 		tx, err := r.pool.Begin(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to begin transaction: %w", err)
 		}
-		
+
 		// Execute migration
 		_, err = tx.Exec(ctx, string(content))
 		if err != nil {
 			tx.Rollback(ctx)
 			return fmt.Errorf("failed to execute migration %s: %w", filePath, err)
 		}
-		
+
 		// Record migration
 		_, err = tx.Exec(
 			ctx,
@@ -162,35 +162,35 @@ func (r *Runner) Run() error {
 			tx.Rollback(ctx)
 			return fmt.Errorf("failed to record migration %s: %w", filePath, err)
 		}
-		
+
 		// Commit transaction
 		if err = tx.Commit(ctx); err != nil {
 			return fmt.Errorf("failed to commit transaction: %w", err)
 		}
-		
+
 		log.Printf("Successfully applied migration %d", version)
 	}
-	
+
 	return nil
 }
 
 // RollbackLast reverts the last applied migration
 func (r *Runner) RollbackLast() error {
 	ctx := context.Background()
-	
+
 	// Find the last applied migration
 	var (
 		version int
 		name    string
 	)
-	
+
 	err := r.pool.QueryRow(
 		ctx,
 		`SELECT version, name FROM migrations
 		ORDER BY version DESC
 		LIMIT 1`,
 	).Scan(&version, &name)
-	
+
 	if err != nil {
 		if err.Error() == "no rows in result set" {
 			log.Println("No migrations to rollback")
@@ -198,46 +198,46 @@ func (r *Runner) RollbackLast() error {
 		}
 		return fmt.Errorf("failed to get last migration: %w", err)
 	}
-	
+
 	// Look for rollback file
 	rollbackPath := filepath.Join(r.migrationsDir, fmt.Sprintf("%03d_%s.down.sql", version, strings.TrimSuffix(name, ".sql")))
-	
+
 	// Check if rollback file exists
 	if _, err := ioutil.ReadFile(rollbackPath); err != nil {
 		return fmt.Errorf("rollback file not found for migration %d: %w", version, err)
 	}
-	
+
 	// Read rollback SQL
 	content, err := ioutil.ReadFile(rollbackPath)
 	if err != nil {
 		return fmt.Errorf("failed to read rollback file %s: %w", rollbackPath, err)
 	}
-	
+
 	// Start a transaction
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	
+
 	// Execute rollback
 	_, err = tx.Exec(ctx, string(content))
 	if err != nil {
 		tx.Rollback(ctx)
 		return fmt.Errorf("failed to execute rollback %s: %w", rollbackPath, err)
 	}
-	
+
 	// Remove migration record
 	_, err = tx.Exec(ctx, "DELETE FROM migrations WHERE version = $1", version)
 	if err != nil {
 		tx.Rollback(ctx)
 		return fmt.Errorf("failed to remove migration record: %w", err)
 	}
-	
+
 	// Commit transaction
 	if err = tx.Commit(ctx); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
-	
+
 	log.Printf("Successfully rolled back migration %d", version)
 	return nil
 }

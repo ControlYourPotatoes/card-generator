@@ -19,14 +19,14 @@ type CardModel struct {
 // TypeSpecificData holds type-specific card data
 type TypeSpecificData struct {
 	// Fields for all possible card types
-	Attack       int
-	Defense      int
-	TraitID      int
-	TraitName    string
-	IsEquipment  bool
-	TargetType   string
-	Timing       string
-	Continuous   bool
+	Attack      int
+	Defense     int
+	TraitID     int
+	TraitName   string
+	IsEquipment bool
+	TargetType  string
+	Timing      string
+	Continuous  bool
 }
 
 // KeywordModel represents a keyword in the database

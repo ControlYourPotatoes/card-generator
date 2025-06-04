@@ -16,7 +16,7 @@ func (s *PostgresStore) saveCard(c card.Card) (string, error) {
 	if err := c.Validate(); err != nil {
 		return "", fmt.Errorf("invalid card: %w", err)
 	}
-	
+
 	// Start a transaction
 	ctx := context.Background()
 	tx, err := s.pool.Begin(ctx)
@@ -28,10 +28,10 @@ func (s *PostgresStore) saveCard(c card.Card) (string, error) {
 			tx.Rollback(ctx)
 		}
 	}()
-	
+
 	// Get card data
 	data := c.ToDTO()
-	
+
 	// Get card type ID
 	var typeID int
 	err = tx.QueryRow(
@@ -39,7 +39,7 @@ func (s *PostgresStore) saveCard(c card.Card) (string, error) {
 		`SELECT id FROM card_types WHERE name = $1`,
 		data.Type,
 	).Scan(&typeID)
-	
+
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			// Insert card type if not exists
@@ -48,7 +48,7 @@ func (s *PostgresStore) saveCard(c card.Card) (string, error) {
 				`INSERT INTO card_types (name) VALUES ($1) RETURNING id`,
 				data.Type,
 			).Scan(&typeID)
-			
+
 			if err != nil {
 				return "", fmt.Errorf("failed to create card type: %w", err)
 			}
@@ -56,7 +56,7 @@ func (s *PostgresStore) saveCard(c card.Card) (string, error) {
 			return "", fmt.Errorf("failed to get card type: %w", err)
 		}
 	}
-	
+
 	// Insert card
 	var cardID int
 	now := time.Now()
@@ -67,31 +67,31 @@ func (s *PostgresStore) saveCard(c card.Card) (string, error) {
 		RETURNING id`,
 		data.Name, data.Cost, data.Effect, typeID, now, now,
 	).Scan(&cardID)
-	
+
 	if err != nil {
 		return "", fmt.Errorf("failed to insert card: %w", err)
 	}
-	
+
 	// Insert type-specific data based on card type
 	if err = s.saveTypeSpecificData(tx, cardID, data); err != nil {
 		return "", err
 	}
-	
+
 	// Insert keywords
 	if err = s.saveCardKeywords(tx, cardID, data.Keywords); err != nil {
 		return "", err
 	}
-	
+
 	// Insert metadata
 	if err = s.saveCardMetadata(tx, cardID, data.Metadata); err != nil {
 		return "", err
 	}
-	
+
 	// Commit transaction
 	if err = tx.Commit(context.Background()); err != nil {
 		return "", fmt.Errorf("failed to commit transaction: %w", err)
 	}
-	
+
 	return fmt.Sprintf("%d", cardID), nil
 }
 
@@ -128,7 +128,7 @@ func (s *PostgresStore) saveCreatureData(tx pgx.Tx, cardID int, data *card.CardD
 		}
 		return nil
 	}
-	
+
 	// Try to get trait ID
 	var traitID int
 	err := tx.QueryRow(
@@ -136,7 +136,7 @@ func (s *PostgresStore) saveCreatureData(tx pgx.Tx, cardID int, data *card.CardD
 		`SELECT id FROM traits WHERE name = $1`,
 		data.Trait,
 	).Scan(&traitID)
-	
+
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			// Trait doesn't exist, create it
@@ -145,7 +145,7 @@ func (s *PostgresStore) saveCreatureData(tx pgx.Tx, cardID int, data *card.CardD
 				`INSERT INTO traits (name) VALUES ($1) RETURNING id`,
 				data.Trait,
 			).Scan(&traitID)
-			
+
 			if err != nil {
 				return fmt.Errorf("failed to create trait: %w", err)
 			}
@@ -153,7 +153,7 @@ func (s *PostgresStore) saveCreatureData(tx pgx.Tx, cardID int, data *card.CardD
 			return fmt.Errorf("failed to get trait: %w", err)
 		}
 	}
-	
+
 	// Insert creature data with trait
 	_, err = tx.Exec(
 		context.Background(),
@@ -161,11 +161,11 @@ func (s *PostgresStore) saveCreatureData(tx pgx.Tx, cardID int, data *card.CardD
 		VALUES ($1, $2, $3, $4)`,
 		cardID, data.Attack, data.Defense, traitID,
 	)
-	
+
 	if err != nil {
 		return fmt.Errorf("failed to insert creature data: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -235,7 +235,7 @@ func (s *PostgresStore) saveCardKeywords(tx pgx.Tx, cardID int, keywords []strin
 			`SELECT id FROM keywords WHERE name = $1`,
 			keyword,
 		).Scan(&keywordID)
-		
+
 		if err != nil {
 			if err == pgx.ErrNoRows {
 				err = tx.QueryRow(
@@ -243,7 +243,7 @@ func (s *PostgresStore) saveCardKeywords(tx pgx.Tx, cardID int, keywords []strin
 					`INSERT INTO keywords (name) VALUES ($1) RETURNING id`,
 					keyword,
 				).Scan(&keywordID)
-				
+
 				if err != nil {
 					return fmt.Errorf("failed to create keyword: %w", err)
 				}
@@ -251,7 +251,7 @@ func (s *PostgresStore) saveCardKeywords(tx pgx.Tx, cardID int, keywords []strin
 				return fmt.Errorf("failed to get keyword: %w", err)
 			}
 		}
-		
+
 		// Insert keyword relation
 		_, err = tx.Exec(
 			context.Background(),
@@ -259,7 +259,7 @@ func (s *PostgresStore) saveCardKeywords(tx pgx.Tx, cardID int, keywords []strin
 			VALUES ($1, $2)`,
 			cardID, keywordID,
 		)
-		
+
 		if err != nil {
 			return fmt.Errorf("failed to insert keyword relation: %w", err)
 		}
@@ -276,7 +276,7 @@ func (s *PostgresStore) saveCardMetadata(tx pgx.Tx, cardID int, metadata map[str
 			VALUES ($1, $2, $3)`,
 			cardID, key, value,
 		)
-		
+
 		if err != nil {
 			return fmt.Errorf("failed to insert metadata: %w", err)
 		}
@@ -303,7 +303,7 @@ func (s *PostgresStore) loadCard(id string) (card.Card, error) {
 		createdAt time.Time
 		updatedAt time.Time
 	)
-	
+
 	err = s.pool.QueryRow(
 		context.Background(),
 		`SELECT c.id, c.name, c.cost, c.effect, c.type_id, ct.name, c.created_at, c.updated_at
@@ -312,26 +312,26 @@ func (s *PostgresStore) loadCard(id string) (card.Card, error) {
 		WHERE c.id = $1`,
 		cardID,
 	).Scan(&dbID, &name, &cost, &effect, &typeID, &typeName, &createdAt, &updatedAt)
-	
+
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, fmt.Errorf("card not found: %s", id)
 		}
 		return nil, fmt.Errorf("failed to load card: %w", err)
 	}
-	
+
 	// Query for keywords
 	keywords, err := s.loadCardKeywords(cardID)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Query for metadata
 	metadata, err := s.loadCardMetadata(cardID)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Create base card
 	baseCard := card.BaseCard{
 		ID:        id,
@@ -344,10 +344,10 @@ func (s *PostgresStore) loadCard(id string) (card.Card, error) {
 		UpdatedAt: updatedAt,
 		Metadata:  metadata,
 	}
-	
+
 	// Create type-specific card
 	var c card.Card
-	
+
 	switch card.CardType(typeName) {
 	case card.TypeCreature:
 		c, err = s.loadCreatureCard(cardID, baseCard)
@@ -363,11 +363,11 @@ func (s *PostgresStore) loadCard(id string) (card.Card, error) {
 		// Default to a base card for unknown types
 		c = &baseCard
 	}
-	
+
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return c, nil
 }
 
@@ -381,12 +381,12 @@ func (s *PostgresStore) loadCardKeywords(cardID int) ([]string, error) {
 		WHERE ck.card_id = $1`,
 		cardID,
 	)
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to load keywords: %w", err)
 	}
 	defer rows.Close()
-	
+
 	var keywords []string
 	for rows.Next() {
 		var keyword string
@@ -395,7 +395,7 @@ func (s *PostgresStore) loadCardKeywords(cardID int) ([]string, error) {
 		}
 		keywords = append(keywords, keyword)
 	}
-	
+
 	return keywords, nil
 }
 
@@ -408,12 +408,12 @@ func (s *PostgresStore) loadCardMetadata(cardID int) (map[string]string, error) 
 		WHERE card_id = $1`,
 		cardID,
 	)
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to load metadata: %w", err)
 	}
 	defer rows.Close()
-	
+
 	metadata := make(map[string]string)
 	for rows.Next() {
 		var key, value string
@@ -422,18 +422,18 @@ func (s *PostgresStore) loadCardMetadata(cardID int) (map[string]string, error) 
 		}
 		metadata[key] = value
 	}
-	
+
 	return metadata, nil
 }
 
 // loadCreatureCard loads a creature card from the database
 func (s *PostgresStore) loadCreatureCard(cardID int, baseCard card.BaseCard) (card.Card, error) {
 	var (
-		attack  int
-		defense int
+		attack    int
+		defense   int
 		traitName pgtype.Text
 	)
-	
+
 	err := s.pool.QueryRow(
 		context.Background(),
 		`SELECT cc.attack, cc.defense, t.name
@@ -442,16 +442,16 @@ func (s *PostgresStore) loadCreatureCard(cardID int, baseCard card.BaseCard) (ca
 		WHERE cc.card_id = $1`,
 		cardID,
 	).Scan(&attack, &defense, &traitName)
-	
+
 	if err != nil && err != pgx.ErrNoRows {
 		return nil, fmt.Errorf("failed to load creature data: %w", err)
 	}
-	
+
 	traitStr := ""
 	if traitName.Valid {
 		traitStr = traitName.String
 	}
-	
+
 	return &card.Creature{
 		BaseCard: baseCard,
 		Attack:   attack,
@@ -463,7 +463,7 @@ func (s *PostgresStore) loadCreatureCard(cardID int, baseCard card.BaseCard) (ca
 // loadArtifactCard loads an artifact card from the database
 func (s *PostgresStore) loadArtifactCard(cardID int, baseCard card.BaseCard) (card.Card, error) {
 	var isEquipment bool
-	
+
 	err := s.pool.QueryRow(
 		context.Background(),
 		`SELECT is_equipment
@@ -471,11 +471,11 @@ func (s *PostgresStore) loadArtifactCard(cardID int, baseCard card.BaseCard) (ca
 		WHERE card_id = $1`,
 		cardID,
 	).Scan(&isEquipment)
-	
+
 	if err != nil && err != pgx.ErrNoRows {
 		return nil, fmt.Errorf("failed to load artifact data: %w", err)
 	}
-	
+
 	return &card.Artifact{
 		BaseCard:    baseCard,
 		IsEquipment: isEquipment,
@@ -485,7 +485,7 @@ func (s *PostgresStore) loadArtifactCard(cardID int, baseCard card.BaseCard) (ca
 // loadSpellCard loads a spell card from the database
 func (s *PostgresStore) loadSpellCard(cardID int, baseCard card.BaseCard) (card.Card, error) {
 	var targetType pgtype.Text
-	
+
 	err := s.pool.QueryRow(
 		context.Background(),
 		`SELECT target_type
@@ -493,16 +493,16 @@ func (s *PostgresStore) loadSpellCard(cardID int, baseCard card.BaseCard) (card.
 		WHERE card_id = $1`,
 		cardID,
 	).Scan(&targetType)
-	
+
 	if err != nil && err != pgx.ErrNoRows {
 		return nil, fmt.Errorf("failed to load spell data: %w", err)
 	}
-	
+
 	targetTypeStr := ""
 	if targetType.Valid {
 		targetTypeStr = targetType.String
 	}
-	
+
 	return &card.Spell{
 		BaseCard:   baseCard,
 		TargetType: targetTypeStr,
@@ -512,7 +512,7 @@ func (s *PostgresStore) loadSpellCard(cardID int, baseCard card.BaseCard) (card.
 // loadIncantationCard loads an incantation card from the database
 func (s *PostgresStore) loadIncantationCard(cardID int, baseCard card.BaseCard) (card.Card, error) {
 	var timing pgtype.Text
-	
+
 	err := s.pool.QueryRow(
 		context.Background(),
 		`SELECT timing
@@ -520,16 +520,16 @@ func (s *PostgresStore) loadIncantationCard(cardID int, baseCard card.BaseCard) 
 		WHERE card_id = $1`,
 		cardID,
 	).Scan(&timing)
-	
+
 	if err != nil && err != pgx.ErrNoRows {
 		return nil, fmt.Errorf("failed to load incantation data: %w", err)
 	}
-	
+
 	timingStr := ""
 	if timing.Valid {
 		timingStr = timing.String
 	}
-	
+
 	return &card.Incantation{
 		BaseCard: baseCard,
 		Timing:   timingStr,
@@ -539,7 +539,7 @@ func (s *PostgresStore) loadIncantationCard(cardID int, baseCard card.BaseCard) 
 // loadAnthemCard loads an anthem card from the database
 func (s *PostgresStore) loadAnthemCard(cardID int, baseCard card.BaseCard) (card.Card, error) {
 	var continuous bool
-	
+
 	err := s.pool.QueryRow(
 		context.Background(),
 		`SELECT continuous
@@ -547,11 +547,11 @@ func (s *PostgresStore) loadAnthemCard(cardID int, baseCard card.BaseCard) (card
 		WHERE card_id = $1`,
 		cardID,
 	).Scan(&continuous)
-	
+
 	if err != nil && err != pgx.ErrNoRows {
 		return nil, fmt.Errorf("failed to load anthem data: %w", err)
 	}
-	
+
 	return &card.Anthem{
 		BaseCard:   baseCard,
 		Continuous: continuous,
@@ -562,13 +562,13 @@ func (s *PostgresStore) loadAnthemCard(cardID int, baseCard card.BaseCard) (card
 func parseCardID(id string) (int, error) {
 	var cardID int
 	var err error
-	
+
 	// Try to parse as integer
 	cardID, err = stringToInt(id)
 	if err != nil {
 		return 0, fmt.Errorf("invalid card ID: %s", id)
 	}
-	
+
 	return cardID, nil
 }
 
@@ -590,7 +590,7 @@ func (s *PostgresStore) deleteCard(id string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// Start a transaction
 	tx, err := s.pool.Begin(context.Background())
 	if err != nil {
@@ -601,7 +601,7 @@ func (s *PostgresStore) deleteCard(id string) error {
 			tx.Rollback(context.Background())
 		}
 	}()
-	
+
 	// Delete related records first (foreign key constraints)
 	tables := []string{
 		"card_keywords",
@@ -614,7 +614,7 @@ func (s *PostgresStore) deleteCard(id string) error {
 		"card_images",
 		"card_set_cards",
 	}
-	
+
 	for _, table := range tables {
 		_, err = tx.Exec(
 			context.Background(),
@@ -625,7 +625,7 @@ func (s *PostgresStore) deleteCard(id string) error {
 			return fmt.Errorf("failed to delete from %s: %w", table, err)
 		}
 	}
-	
+
 	// Delete the card itself
 	commandTag, err := tx.Exec(
 		context.Background(),
@@ -635,17 +635,17 @@ func (s *PostgresStore) deleteCard(id string) error {
 	if err != nil {
 		return fmt.Errorf("failed to delete card: %w", err)
 	}
-	
+
 	// Check if any rows were affected
 	if commandTag.RowsAffected() == 0 {
 		return fmt.Errorf("card not found: %s", id)
 	}
-	
+
 	// Commit transaction
 	if err = tx.Commit(context.Background()); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -660,7 +660,7 @@ func (s *PostgresStore) listCards() ([]card.Card, error) {
 		return nil, fmt.Errorf("failed to list cards: %w", err)
 	}
 	defer rows.Close()
-	
+
 	var ids []string
 	for rows.Next() {
 		var id int
@@ -669,7 +669,7 @@ func (s *PostgresStore) listCards() ([]card.Card, error) {
 		}
 		ids = append(ids, fmt.Sprintf("%d", id))
 	}
-	
+
 	var cards []card.Card
 	for _, id := range ids {
 		card, err := s.loadCard(id)
@@ -678,6 +678,6 @@ func (s *PostgresStore) listCards() ([]card.Card, error) {
 		}
 		cards = append(cards, card)
 	}
-	
+
 	return cards, nil
 }

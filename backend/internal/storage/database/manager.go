@@ -41,12 +41,12 @@ func NewManager(configPath string) (*Manager, error) {
 // Connect establishes a database connection
 func (m *Manager) Connect() error {
 	connStr := m.config.ConnectionString()
-	
+
 	poolConfig, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		return fmt.Errorf("failed to parse connection string: %w", err)
 	}
-	
+
 	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
@@ -71,7 +71,7 @@ func (m *Manager) Initialize(migrationsDir string) error {
 
 	// Create PostgreSQL store
 	store := &PostgresStore{pool: m.pool}
-	
+
 	// Initialize schema directly rather than using the runner
 	// This avoids the sql.DB vs pgxpool.Pool type mismatch
 	if err := store.InitSchema(); err != nil {
@@ -118,7 +118,7 @@ func (m *Manager) InitWithTestData() error {
 
 	// Create seeder
 	seeder := NewSeeder(store)
-	
+
 	// Seed test data
 	if err := seeder.SeedAll(); err != nil {
 		return fmt.Errorf("failed to seed test data: %w", err)

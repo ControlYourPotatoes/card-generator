@@ -19,7 +19,7 @@ func TestMemoryStore(t *testing.T) {
 		},
 		Attack:  1,
 		Defense: 1,
-		Trait: "Test",
+		Trait:   "Test",
 	}
 
 	// Test Save

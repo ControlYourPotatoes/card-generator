@@ -257,7 +257,7 @@ func (p *CSVParser) parseIncantation(name string, cost int, effect string) (card
 // This is a simple implementation - could be improved with more advanced NLP
 func extractKeywords(effect string) []string {
 	commonKeywords := []string{
-		"CRITICAL", "HASTE", "DAMAGE", "BUFF", "EQUIPMENT", 
+		"CRITICAL", "HASTE", "DAMAGE", "BUFF", "EQUIPMENT",
 		"COUNTER", "DRAW", "DIRECT", "FLYING", "IMMUNE",
 	}
 

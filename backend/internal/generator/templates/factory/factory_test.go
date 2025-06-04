@@ -1,72 +1,72 @@
 package factory
 
 import (
-    "testing"
-    "image"
+	"image"
+	"testing"
 
-    "github.com/ControlYourPotatoes/card-generator/internal/card"
+	"github.com/ControlYourPotatoes/card-generator/internal/card"
 )
 
 func TestTemplateFactory(t *testing.T) {
-    tests := []struct {
-        name      string
-        cardType  card.CardType
-        wantError bool
-    }{
-        {"Creature Template", card.TypeCreature, false},
-        {"Artifact Template", card.TypeArtifact, false},
-        {"Spell Template", card.TypeSpell, false},
-        {"Incantation Template", card.TypeIncantation, false},
-        {"Anthem Template", card.TypeAnthem, false},
-        {"Invalid Type", "InvalidType", true},
-    }
+	tests := []struct {
+		name      string
+		cardType  card.CardType
+		wantError bool
+	}{
+		{"Creature Template", card.TypeCreature, false},
+		{"Artifact Template", card.TypeArtifact, false},
+		{"Spell Template", card.TypeSpell, false},
+		{"Incantation Template", card.TypeIncantation, false},
+		{"Anthem Template", card.TypeAnthem, false},
+		{"Invalid Type", "InvalidType", true},
+	}
 
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            template, err := NewTemplate(tt.cardType)
-            
-            if tt.wantError {
-                if err == nil {
-                    t.Error("expected error, got nil")
-                }
-                return
-            }
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			template, err := NewTemplate(tt.cardType)
 
-            if err != nil {
-                t.Fatalf("unexpected error: %v", err)
-            }
+			if tt.wantError {
+				if err == nil {
+					t.Error("expected error, got nil")
+				}
+				return
+			}
 
-            if template == nil {
-                t.Fatal("template is nil")
-            }
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
 
-            // Test GetFrame
-            cardData := &card.CardData{
-                Type: tt.cardType,
-                Name: "Test Card",
-                Cost: 1,
-                Effect: "Test effect",
-            }
+			if template == nil {
+				t.Fatal("template is nil")
+			}
 
-            frame, err := template.GetFrame(cardData)
-            if err != nil {
-                t.Errorf("GetFrame() error = %v", err)
-            }
-            if frame == nil {
-                t.Error("frame is nil")
-            }
+			// Test GetFrame
+			cardData := &card.CardData{
+				Type:   tt.cardType,
+				Name:   "Test Card",
+				Cost:   1,
+				Effect: "Test effect",
+			}
 
-            // Test GetTextBounds
-            bounds := template.GetTextBounds(cardData)
-            if bounds == nil {
-                t.Error("text bounds is nil")
-            }
+			frame, err := template.GetFrame(cardData)
+			if err != nil {
+				t.Errorf("GetFrame() error = %v", err)
+			}
+			if frame == nil {
+				t.Error("frame is nil")
+			}
 
-            // Test GetArtBounds
-            artBounds := template.GetArtBounds()
-            if artBounds == image.ZR {
-                t.Error("art bounds is empty")
-            }
-        })
-    }
+			// Test GetTextBounds
+			bounds := template.GetTextBounds(cardData)
+			if bounds == nil {
+				t.Error("text bounds is nil")
+			}
+
+			// Test GetArtBounds
+			artBounds := template.GetArtBounds()
+			if artBounds == image.ZR {
+				t.Error("art bounds is empty")
+			}
+		})
+	}
 }

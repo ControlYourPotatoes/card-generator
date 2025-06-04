@@ -34,11 +34,11 @@ func (t *ArtifactTemplate) GetTextBounds(data *card.CardDTO) map[string]image.Re
 	bounds["type"] = image.Rect(125, 1885, 1375, 1955)
 	bounds["effect"] = image.Rect(160, 1250, 1340, 1750)
 	bounds["collector"] = image.Rect(110, 2010, 750, 2090)
-	
+
 	// Equipment artifacts might need special positioning
 	if data.IsEquipment {
 		bounds["effect"] = image.Rect(160, 1200, 1340, 1700)
 	}
-	
+
 	return bounds
 }

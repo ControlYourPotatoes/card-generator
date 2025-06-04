@@ -2,8 +2,8 @@ package database_test
 
 import (
 	"os"
-	"testing"
 	"path/filepath"
+	"testing"
 
 	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
 	"github.com/ControlYourPotatoes/card-generator/backend/internal/storage/database"
@@ -18,7 +18,7 @@ func setupTestDB(t *testing.T) *database.PostgresStore {
 		"../../.env",
 		"../../../.env",
 	}
-	
+
 	envLoaded := false
 	for _, path := range envPaths {
 		absPath, _ := filepath.Abs(path)
@@ -32,10 +32,10 @@ func setupTestDB(t *testing.T) *database.PostgresStore {
 			}
 		}
 	}
-	
+
 	if !envLoaded {
 		t.Logf("No .env file found, using environment variables")
-		
+
 		// Set default test database settings if not already provided by environment
 		if os.Getenv("DB_HOST") == "" {
 			os.Setenv("DB_HOST", "localhost")
@@ -69,12 +69,12 @@ func setupTestDB(t *testing.T) *database.PostgresStore {
 	if err := manager.Connect(); err != nil {
 		t.Fatalf("Failed to connect to database: %v", err)
 	}
-	
+
 	// Initialize test data
 	if err := manager.InitWithTestData(); err != nil {
 		t.Fatalf("Failed to initialize test data: %v", err)
 	}
-	
+
 	// Get store
 	store, err := manager.GetStore()
 	if err != nil {

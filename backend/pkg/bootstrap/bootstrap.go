@@ -112,7 +112,7 @@ func (app *Application) GetCSVParser(reader io.Reader) (*parser.CSVParser, error
 	if err != nil {
 		return nil, err
 	}
-	
+
 	factory := factoryInstance.(func(io.Reader) *parser.CSVParser)
 	return factory(reader), nil
 }
@@ -132,4 +132,4 @@ func (app *Application) Shutdown() error {
 	}
 
 	return nil
-} 
+}

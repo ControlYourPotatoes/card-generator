@@ -12,6 +12,8 @@ type Container interface {
 	RegisterTransient(name string, factory interface{}) error
 	Resolve(name string) (interface{}, error)
 	ResolveAs(name string, target interface{}) error
+	GetRegisteredServices() []string
+	Clear()
 }
 
 // Lifetime defines the lifetime of a service
@@ -170,7 +172,7 @@ func (c *container) createInstance(service *ServiceDescriptor) (interface{}, err
 	args := make([]reflect.Value, factoryType.NumIn())
 	for i := 0; i < factoryType.NumIn(); i++ {
 		paramType := factoryType.In(i)
-		
+
 		// Try to resolve parameter from container
 		// For now, we'll pass zero values, but this can be enhanced
 		// to support dependency resolution
@@ -204,6 +206,6 @@ func (c *container) GetRegisteredServices() []string {
 func (c *container) Clear() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	c.services = make(map[string]*ServiceDescriptor)
-} 
+}

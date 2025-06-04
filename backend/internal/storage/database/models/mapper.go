@@ -1,11 +1,8 @@
 package models
 
 import (
-
 	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
 )
-
-
 
 // ToDomain converts database models to domain models
 func (cm *CardModel) ToDomain(specificData TypeSpecificData, keywords []string, metadata map[string]string) (card.Card, error) {
