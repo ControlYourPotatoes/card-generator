@@ -1,0 +1,81 @@
+Testing Strategy Recommendations
+Based on my analysis of your new DI implementation and existing test structure, here's a comprehensive testing strategy to move forward:
+1. Current Test Situation
+You have scattered tests across various packages
+Some test files are disabled (using ._test.go extension)
+Basic domain model tests exist but need enhancement
+No tests yet for the new DI infrastructure
+2. Priority Testing Areas
+Phase 1: Test the DI Foundation (Highest Priority)
+Create comprehensive tests for your new DI implementation:
+    # Create test files for DI components
+    touch backend/pkg/di/container_test.go
+    touch backend/pkg/config/config_test.go  
+    touch backend/pkg/bootstrap/bootstrap_test.go
+Phase 2: Integration Tests
+Test how the DI system works with existing components:
+    touch backend/test/integration/di_integration_test.go
+Phase 3: End-to-End Tests
+Test the complete card generation pipeline using DI:
+    touch backend/test/e2e/card_generation_test.go
+
+backend/
+├── pkg/
+│   ├── di/
+│   │   ├── container.go
+│   │   └── container_test.go       # ← NEW
+│   ├── config/
+│   │   ├── config.go
+│   │   └── config_test.go          # ← NEW
+│   └── bootstrap/
+│       ├── bootstrap.go
+│       └── bootstrap_test.go       # ← NEW
+├── test/
+│   ├── integration/
+│   │   └── di_integration_test.go  # ← NEW
+│   ├── e2e/
+│   │   └── card_generation_test.go # ← NEW
+│   └── testdata/                   # ← Move test/data here
+│       ├── test_cards.csv
+│       └── config.test.yaml        # ← NEW test config
+└── internal/
+    └── [existing tests...]
+
+5.enhanced make file targets
+# Test targets
+.PHONY: test test-unit test-integration test-e2e test-coverage
+
+# Run all tests
+test:
+	@echo "Running all tests..."
+	@go test ./...
+
+# Run unit tests only
+test-unit:
+	@echo "Running unit tests..."
+	@go test -short ./pkg/... ./internal/...
+
+# Run integration tests
+test-integration:
+	@echo "Running integration tests..."
+	@go test ./test/integration/...
+
+# Run end-to-end tests
+test-e2e:
+	@echo "Running end-to-end tests..."
+	@go test ./test/e2e/...
+
+# Generate test coverage
+test-coverage:
+	@echo "Generating test coverage..."
+	@go test -coverprofile=coverage.out ./...
+	@go tool cover -html=coverage.out -o coverage.html
+
+# Test DI implementation specifically
+test-di:
+	@echo "Testing DI implementation..."
+	@go test ./pkg/di ./pkg/config ./pkg/bootstrap
+
+# Clean test artifacts
+clean-test:
+	@rm -f coverage.out coverage.html
