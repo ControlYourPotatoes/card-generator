@@ -1,0 +1,185 @@
+Areas for Improvement:
+
+1. Dependency Injection & Service Layer
+    Current Issues:
+        Hard-coded dependencies in constructors
+        Tight coupling between layers
+        No centralized configuration management
+        Manual dependency wiring
+    Recomended Solution:
+        Use dependency injection to inject dependencies into the service layer
+        Use a service locator to manage dependencies
+        Use a factory pattern to create instances of services
+        Use a configuration file to manage configuration settings
+        Use a dependency injection container to manage dependencies
+
+
+2. Configuration Management
+    Current Issues:
+        Environment variables scattered across files
+        No centralized config validation
+        Hard-coded paths and settings
+
+    Recomended Solution:
+        // pkg/config/config.go
+    type Config struct {
+        Server    ServerConfig    `yaml:"server"`
+        Database  DatabaseConfig  `yaml:"database"`
+        Storage   StorageConfig   `yaml:"storage"`
+        Generator GeneratorConfig `yaml:"generator"`
+        Logging   LoggingConfig   `yaml:"logging"`
+    }
+
+    func LoadConfig(env string) (*Config, error) {
+        // Load from multiple sources: env, yaml, defaults
+    }
+
+3. Error Handling & Observability
+    Current Issues:
+        Basic error handling without context
+        No structured logging
+        No metrics or tracing
+        No standardized error types
+
+    Recomended Solution:
+        // pkg/errors/errors.go
+    type Error struct {
+        Code    string
+        Message string
+        Details map[string]interface{}
+        Cause   error
+    }
+
+    // pkg/observability/logger.go
+    type Logger interface {
+        WithFields(fields map[string]interface{}) Logger
+        Debug(msg string, fields ...interface{})
+        Info(msg string, fields ...interface{})
+        Error(msg string, err error, fields ...interface{})
+    }
+4. Validation Layer
+    Current Issues:
+        Basic validation scattered in domain models
+        No complex business rule validation
+        No validation rule composition
+    
+        // pkg/validation/validator.go
+    type Validator interface {
+        Validate(ctx context.Context, entity interface{}) error
+        ValidateWithRules(ctx context.Context, entity interface{}, rules []Rule) error
+    }
+
+    type Rule interface {
+        Apply(ctx context.Context, value interface{}) error
+        Name() string
+    }
+
+5. Repository Pattern for Storage
+    Current Issues:
+        Generic Store interface doesnt leverage domain-specific operations
+        No query builders or specifications
+    Recommended Solution:
+        // internal/repository/card.go
+    type CardRepository interface {
+        Create(ctx context.Context, card *card.Card) error
+        GetByID(ctx context.Context, id string) (*card.Card, error)
+        GetByType(ctx context.Context, cardType card.Type) ([]*card.Card, error)
+        Search(ctx context.Context, spec SearchSpec) ([]*card.Card, error)
+        Update(ctx context.Context, card *card.Card) error
+        Delete(ctx context.Context, id string) error
+    }
+
+6. Event-Driven Architecture
+Current Issues:
+        No event system for domain events
+        No event handlers for domain events
+        No event publishers for domain events
+    
+    Recommendation for Image Processing Layer:
+
+        // pkg/events/bus.go
+    type EventBus interface {
+        Publish(ctx context.Context, event Event) error
+        Subscribe(eventType string, handler EventHandler) error
+    }
+
+    // Events for image processing
+    type CardImageGenerationRequested struct {
+        CardID    string
+        Style     string
+        Priority  int
+        Metadata  map[string]interface{}
+    }
+
+    type CardImageGenerationCompleted struct {
+        CardID   string
+        ImageURL string
+        Status   string
+    }
+
+Proposed New Project Structure:
+    backend/
+    ├── cmd/
+    │   ├── api/           # HTTP API server
+    │   ├── worker/        # Background job worker
+    │   └── cli/           # CLI tools (importer, etc.)
+    ├── pkg/               # Shared packages
+    │   ├── config/
+    │   ├── di/            # Dependency injection
+    │   ├── errors/
+    │   ├── events/
+    │   ├── logging/
+    │   ├── metrics/
+    │   └── validation/
+    ├── internal/
+    │   ├── domain/        # Core business logic
+    │   │   ├── card/
+    │   │   ├── user/
+    │   │   └── image/
+    │   ├── application/   # Use cases/services
+    │   │   ├── card/
+    │   │   └── image/
+    │   ├── infrastructure/ # External concerns
+    │   │   ├── database/
+    │   │   ├── storage/
+    │   │   ├── queue/
+    │   │   └── http/
+    │   └── interfaces/    # Controllers/handlers
+    │       ├── http/
+    │       ├── cli/
+    │       └── events/
+
+Tech Spec & AI Agent Rules
+    Development Principles:
+        SOLID Principles: Single responsibility, Open/closed, Liskov substitution, Interface segregation, Dependency inversion. 
+        Clean Architecture: Dependencies point inward, business logic is isolated
+        Domain-Driven Design: Rich domain models, ubiquitous language
+
+    AI Agent Rules:
+        Always use the latest stable version of any library or tool
+        Prioritize code readability and maintainability
+        Ensure all new code is well-documented
+
+
+API Design Guidelines:
+    RESTful APIs: Use proper HTTP methods and status codes
+    Versioning: Use URL versioning (/api/v1/)
+    Pagination: Always paginate list endpoints
+    Error Responses: Consistent error format with codes and details
+    Database Guidelines:
+    Migrations: All schema changes via migrations
+    Transactions: Use for multi-table operations
+    Indexing: Index foreign keys and frequently queried columns
+    Connection Pooling: Properly configured pool sizes
+    Testing Strategy:
+        Unit Tests: Test business logic in isolation
+        Integration Tests: Test database and external service interactions
+        Contract Tests: For API consumers/producers
+        End-to-End Tests: Critical user journeys
+    Performance Guidelines:
+        Rate Limiting: Implement rate limiting at API level
+        Caching: Use caching for frequently accessed data
+        Batching: Batch operations for better performance
+        Profiling: Use profiling tools to identify and optimize performance bottlenecks
+        Monitoring: Implement monitoring and alerting for performance metrics
+        
