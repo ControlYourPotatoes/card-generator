@@ -1,0 +1,64 @@
+server:
+  port: 8080
+  host: "localhost"
+  read_timeout: 30
+  write_timeout: 30
+  environment: "development"
+
+database:
+  type: "memory"
+  host: "localhost"
+  port: 5432
+  name: "cardgen_dev"
+  user: "cardgen"
+  password: ""
+  ssl_mode: "disable"
+  max_conns: 10
+  max_idle: 5
+  max_lifetime: 300
+
+storage:
+  type: "file"
+  base_path: "./data"
+  output_dir: "./output"
+  image_dir: "./output/images"
+  temp_dir: "./tmp"
+
+generator:
+  image_width: 750
+  image_height: 1050
+  dpi: 300
+  quality: 95
+  format: "png"
+  templates_path: "./templates"
+  fonts_path: "./fonts"
+  default_font: "arial.ttf"
+  parallel_jobs: 4
+  enable_caching: true
+  cache_directory: "./cache"
+
+  text_rendering:
+    default_font_size: 12.0
+    line_spacing: 1.2
+    default_color: "#000000"
+    anti_aliasing: true
+    font_cache: true
+    custom_fonts: {}
+
+  art_processing:
+    enable_placeholder: true
+    placeholder_color: "#CCCCCC"
+    resize_algorithm: "lanczos"
+    enable_filters: false
+    default_filter: "none"
+    max_image_size: 10485760 # 10MB
+
+logging:
+  level: "debug"
+  format: "text"
+  output: "stdout"
+  file_path: ""
+  max_size: 100
+  max_backups: 3
+  max_age: 28
+  compress: true

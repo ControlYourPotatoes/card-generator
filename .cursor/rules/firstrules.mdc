@@ -1,0 +1,8 @@
+---
+description: When writing new code
+globs: 
+alwaysApply: false
+---
+SOLID Principles: Single responsibility, Open/closed, Liskov substitution, Interface segregation, Dependency inversion. 
+Clean Architecture: Dependencies point inward, business logic is isolated
+Domain-Driven Design: Rich domain models, ubiquitous language

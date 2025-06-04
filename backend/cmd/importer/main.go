@@ -1,4 +1,3 @@
-// Package main provides the entry point for the card importer tool
 package main
 
 import (

@@ -8,10 +8,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
-	"github.com/ControlYourPotatoes/card-generator/internal/generator/image"
-	"github.com/ControlYourPotatoes/card-generator/internal/parser"
-	"github.com/ControlYourPotatoes/card-generator/internal/store/memory"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/generator/image"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/parser"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/store/memory"
 )
 
 type CardOutput struct {
