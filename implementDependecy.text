@@ -1,0 +1,83 @@
+Context & Current State
+You are refactoring a Go-based card generator backend to implement modern software engineering principles. The current codebase has the following issues:
+Hard-coded dependencies in constructors (see backend/internal/generator/generator.go)
+Tight coupling between layers (main.go directly instantiates storage, generator, factory)
+No centralized configuration management
+Manual dependency wiring throughout the application
+Current Project Structure
+backend/
+├── cmd/
+│   ├── cardgen/main.go          # Main entry point with manual DI
+│   ├── db-cleaner/
+│   └── importer/
+├── internal/
+│   ├── core/
+│   │   ├── card/               # Domain models (CardDTO, BaseCard)
+│   │   └── common/
+│   ├── storage/
+│   │   ├── store.go            # Generic Store interface
+│   │   ├── memory/             # In-memory implementation
+│   │   ├── database/           # Database implementation
+│   │   └── file/               # File-based implementation
+│   ├── generator/
+│   │   ├── generator.go        # Card generator with hard-coded deps
+│   │   ├── art/                # Art processing
+│   │   ├── text/               # Text processing
+│   │   └── templates/          # Template system
+│   ├── parser/                 # Card parsing logic
+│   └── analysis/               # Card analysis features
+└── go.mod
+Target Structure after refactoring:
+backend/
+├── cmd/
+│   ├── cardgen/main.go         # Clean main with DI container
+│   ├── api/                    # HTTP API server (future)
+│   ├── worker/                 # Background worker (future)
+│   └── cli/                    # CLI tools
+├── pkg/                        # NEW: Shared packages
+│   ├── config/                 # Centralized configuration
+│   ├── di/                     # Dependency injection container
+│   └── errors/                 # Standardized error handling
+├── internal/
+│   ├── domain/                 # NEW: Pure business logic
+│   │   ├── card/               # Core card domain
+│   │   └── user/               # User domain (future)
+│   ├── application/            # NEW: Use cases/services
+│   │   ├── card/               # Card services
+│   │   └── image/              # Image processing services
+│   ├── infrastructure/         # NEW: External concerns
+│   │   ├── storage/            # Refactored storage
+│   │   ├── generator/          # Refactored generators
+│   │   └── parser/             # Moved from internal root
+│   └── interfaces/             # NEW: Controllers/handlers
+│       ├── cli/                # CLI handlers
+│       └── http/               # HTTP handlers (future)
+Your Implementation Tasks
+Phase 1: Create Dependency Injection Foundation
+    Create pkg/di/container.go:
+        Implement a simple DI container using interfaces
+        Support singleton and transient lifetimes
+        Provide registration and resolution methods
+        Example interface:
+            type Container interface {
+                RegisterSingleton(name string, factory interface{}) error
+                RegisterTransient(name string, factory interface{}) error
+                Resolve(name string) (interface{}, error)
+                ResolveAs(name string, target interface{}) error
+            }
+    Create pkg/config/config.go:
+        Centralized configuration struct
+        Load from environment variables, YAML files, and defaults
+        Validation for required fields
+        Structure should match the TODO file recommendations
+Phase 2: Refactor Domain Layer
+    Create internal/domain/card/:
+    Move pure business logic from internal/core/card/
+    Keep domain models clean of infrastructure dependencies
+    Implement domain services for complex business rules
+    Create proper value objects and entities
+    Create internal/application/card/service.go:
+    Define CardService interface and implementation
+    Handle use cases like "Create Card", "Generate Card Image"
+    Depend only on domain interfaces, not concrete implementations
+    Example interface:
