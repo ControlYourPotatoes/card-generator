@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/ControlYourPotatoes/card-generator/internal/card"
-	"github.com/ControlYourPotatoes/card-generator/internal/store"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
+	store "github.com/ControlYourPotatoes/card-generator/backend/internal/storage"
 )
 
 // MemoryStore implements store.Store interface with in-memory storage

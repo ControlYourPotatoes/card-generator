@@ -2,10 +2,11 @@
 package factory
 
 import (
-    "fmt"
-    "github.com/ControlYourPotatoes/card-generator/internal/card"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates/base"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates/types"
+	"fmt"
+
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/generator/templates/base"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/generator/templates/types"
 )
 
 // NewTemplate creates the appropriate template type

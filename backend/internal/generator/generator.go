@@ -2,26 +2,26 @@
 package generator
 
 import (
-    "fmt"
-    "image"
-    "image/draw"
-    "image/png"
-    "os"
-    "path/filepath"
+	"fmt"
+	"image"
+	"image/draw"
+	"image/png"
+	"os"
+	"path/filepath"
 
-    "github.com/ControlYourPotatoes/card-generator/internal/card"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/art"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates/factory"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/text"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/generator/art"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/generator/templates/factory"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/generator/text"
 )
 
 // CardGenerator defines the interface for generating cards
 type CardGenerator interface {
     // GenerateCard creates a card image from the provided data and saves it to the specified path
-    GenerateCard(data *card.CardData, outputPath string) error
+    GenerateCard(data *card.CardDTO, outputPath string) error
     
     // ValidateCard checks if the card data is valid for generation
-    ValidateCard(data *card.CardData) error
+    ValidateCard(data *card.CardDTO) error
     
     // Close cleans up any resources used by the generator
     Close() error
@@ -80,7 +80,7 @@ func NewCardGeneratorWithConfig(cfg *Config) (CardGenerator, error) {
     return g, nil
 }
 
-func (g *cardGenerator) ValidateCard(data *card.CardData) error {
+func (g *cardGenerator) ValidateCard(data *card.CardDTO) error {
     if data == nil {
         return fmt.Errorf("card data cannot be nil")
     }
@@ -117,7 +117,7 @@ func (g *cardGenerator) ValidateCard(data *card.CardData) error {
     return nil
 }
 
-func (g *cardGenerator) GenerateCard(data *card.CardData, outputPath string) error {
+func (g *cardGenerator) GenerateCard(data *card.CardDTO, outputPath string) error {
     // Validate card data
     if err := g.ValidateCard(data); err != nil {
         return fmt.Errorf("invalid card data: %w", err)

@@ -1,13 +1,13 @@
 package art
 
 import (
-    "fmt"
-    "image"
-    "image/draw"
-    "image/png"
-    "net/http"
-    
-    "github.com/ControlYourPotatoes/card-generator/internal/core/card"
+	"fmt"
+	"image"
+	"image/draw"
+	"image/png"
+	"net/http"
+
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
 )
 
 // placeholderProcessor implements ArtProcessor using placeholder images
@@ -23,7 +23,7 @@ func NewPlaceholderProcessor() ArtProcessor {
 }
 
 // ProcessArt implements ArtProcessor interface
-func (p *placeholderProcessor) ProcessArt(data *card.CardData, bounds image.Rectangle) (image.Image, error) {
+func (p *placeholderProcessor) ProcessArt(data *card.CardDTO, bounds image.Rectangle) (image.Image, error) {
     width := bounds.Dx()
     height := bounds.Dy()
     

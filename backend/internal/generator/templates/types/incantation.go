@@ -1,12 +1,10 @@
 package types
 
 import (
-    "image"
-    "strings"
+	"image"
 
-    "github.com/ControlYourPotatoes/card-generator/internal/card"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/layout"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates/base"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/generator/templates/base"
 )
 
 type IncantationTemplate struct {
@@ -19,36 +17,22 @@ func NewIncantationTemplate() (*IncantationTemplate, error) {
     }, nil
 }
 
-func (t *IncantationTemplate) GetFrame(data *card.CardData) (image.Image, error) {
-    if t.isSpecialIncantation(data) {
-        return t.LoadFrame("SpecialIncantation.png")
-    }
+func (t *IncantationTemplate) GetFrame(data *card.CardDTO) (image.Image, error) {
     return t.LoadFrame("BaseIncantation.png")
 }
 
-func (t *IncantationTemplate) GetTextBounds(data *card.CardData) *layout.TextBounds {
-    bounds := &layout.TextBounds{
-        Name: layout.TextConfig{
-            Bounds:    image.Rect(125, 90, 1375, 170),
-            FontSize:  72,
-            Alignment: "center",
-        },
-        Effect: layout.TextConfig{
-            Bounds:    image.Rect(160, 1250, 1340, 1750),
-            FontSize:  48,
-            Alignment: "left",
-        },
+func (t *IncantationTemplate) GetTextBounds(data *card.CardDTO) map[string]image.Rectangle {
+    bounds := make(map[string]image.Rectangle)
+    bounds["name"] = image.Rect(125, 90, 1375, 170)
+    bounds["cost"] = image.Rect(125, 90, 1375, 170)
+    bounds["type"] = image.Rect(125, 1885, 1375, 1955)
+    bounds["effect"] = image.Rect(160, 1250, 1340, 1750)
+    bounds["collector"] = image.Rect(110, 2010, 750, 2090)
+    
+    // Incantations might have different positioning
+    if data.Continuous {
+        bounds["effect"] = image.Rect(160, 1200, 1340, 1700)
     }
-
-    // Adjust bounds if it has timing text
-    if data.Timing != "" {
-        bounds.Effect.Bounds = image.Rect(160, 1300, 1340, 1750)
-    }
-
+    
     return bounds
-}
-
-func (t *IncantationTemplate) isSpecialIncantation(data *card.CardData) bool {
-    return strings.Contains(strings.ToUpper(data.Effect), "ON ANY CLASH") ||
-           strings.Contains(strings.ToUpper(data.Effect), "ON ATTACK")
-}
+} 

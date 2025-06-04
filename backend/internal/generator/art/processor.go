@@ -1,14 +1,15 @@
 package art
 
 import (
-    "image"
-    "github.com/ControlYourPotatoes/card-generator/internal/core/card"
+	"image"
+
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
 )
 
 // ArtProcessor defines how card art should be processed
 type ArtProcessor interface {
     // ProcessArt handles retrieving and processing art for a card
-    ProcessArt(data *card.CardData, bounds image.Rectangle) (image.Image, error)
+    ProcessArt(data *card.CardDTO, bounds image.Rectangle) (image.Image, error)
 }
 
 // ArtSource represents where art can come from

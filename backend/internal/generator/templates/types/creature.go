@@ -1,13 +1,11 @@
 package types
 
 import (
-    "image"
-    "strings"
+	"image"
+	"strings"
 
-    "github.com/ControlYourPotatoes/card-generator/internal/card"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/layout"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates/base"
-    
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/generator/templates/base"
 )
 
 type CreatureTemplate struct {
@@ -15,14 +13,14 @@ type CreatureTemplate struct {
 }
 
 func NewCreatureTemplate() (*CreatureTemplate, error) {
-    base := base.NewBaseTemplate()
+    baseTemplate := base.NewBaseTemplate()
     return &CreatureTemplate{
-        BaseTemplate: *base,  // Note the dereference here
+        BaseTemplate: *baseTemplate,  // Note the dereference here
     }, nil
 }
 
 // GetFrame implements the Template interface
-func (t *CreatureTemplate) GetFrame(data *card.CardData) (image.Image, error) {
+func (t *CreatureTemplate) GetFrame(data *card.CardDTO) (image.Image, error) {
     var frameName string
     if t.isSpecialFrame(data) {
         frameName = "SpecialCreatureWithStats.png"
@@ -32,31 +30,24 @@ func (t *CreatureTemplate) GetFrame(data *card.CardData) (image.Image, error) {
     return t.LoadFrame(frameName)
 }
 
-func (t *CreatureTemplate) GetTextBounds(data *card.CardData) *layout.TextBounds {
-    bounds := layout.GetDefaultBounds()
+func (t *CreatureTemplate) GetTextBounds(data *card.CardDTO) map[string]image.Rectangle {
+    bounds := make(map[string]image.Rectangle)
+    
+    // Basic text bounds
+    bounds["name"] = image.Rect(125, 90, 1375, 170)
+    bounds["cost"] = image.Rect(125, 90, 1375, 170)
+    bounds["type"] = image.Rect(125, 1885, 1375, 1955)
+    bounds["effect"] = image.Rect(160, 1250, 1340, 1750)
+    bounds["collector"] = image.Rect(110, 2010, 750, 2090)
     
     // Add stats positioning for creatures
-    bounds.Stats = &layout.StatsConfig{
-        Left: layout.TextConfig{
-            Bounds:    image.Rect(130, 1820, 230, 1900),
-            FontSize:  72,
-            Alignment: "center",
-        },
-        Right: layout.TextConfig{
-            Bounds:    image.Rect(1270, 1820, 1370, 1900),
-            FontSize:  72,
-            Alignment: "center",
-        },
-    }
+    bounds["attack"] = image.Rect(130, 1820, 230, 1900)
+    bounds["defense"] = image.Rect(1270, 1820, 1370, 1900)
     
-    // Adjust effect box to account for stats
-    bounds.Effect.Bounds = image.Rect(160, 1250, 1340, 1750)
     return bounds
 }
 
-
-
-func (t *CreatureTemplate) isSpecialFrame(data *card.CardData) bool {
+func (t *CreatureTemplate) isSpecialFrame(data *card.CardDTO) bool {
     // Check for special traits or keywords that would trigger special frame
     specialTraits := []string{"Legendary", "Ancient", "Divine"}
     for _, trait := range specialTraits {

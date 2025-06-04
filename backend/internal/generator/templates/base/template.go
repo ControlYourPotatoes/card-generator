@@ -2,21 +2,20 @@
 package base
 
 import (
-    "fmt"
-    "image"
-    "image/png"
-    "os"
-    "path/filepath"
-    "runtime"
-    
-    "github.com/ControlYourPotatoes/card-generator/internal/card"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/layout"
+	"fmt"
+	"image"
+	"image/png"
+	"os"
+	"path/filepath"
+	"runtime"
+
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
 )
 
 // Template interface defines required methods
 type Template interface {
-    GetFrame(data *card.CardData) (image.Image, error)
-    GetTextBounds(data *card.CardData) *layout.TextBounds
+    GetFrame(data *card.CardDTO) (image.Image, error)
+    GetTextBounds(data *card.CardDTO) map[string]image.Rectangle
     GetArtBounds() image.Rectangle
 }
 

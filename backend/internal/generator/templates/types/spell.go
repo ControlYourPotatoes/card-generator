@@ -1,11 +1,10 @@
 package types
 
 import (
-    "image"
+	"image"
 
-    "github.com/ControlYourPotatoes/card-generator/internal/card"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/layout"
-    "github.com/ControlYourPotatoes/card-generator/internal/generator/templates/base"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/generator/templates/base"
 )
 
 type SpellTemplate struct {
@@ -18,21 +17,16 @@ func NewSpellTemplate() (*SpellTemplate, error) {
     }, nil
 }
 
-func (t *SpellTemplate) GetFrame(data *card.CardData) (image.Image, error) {
+func (t *SpellTemplate) GetFrame(data *card.CardDTO) (image.Image, error) {
     return t.LoadFrame("BaseSpell.png")
 }
 
-func (t *SpellTemplate) GetTextBounds(data *card.CardData) *layout.TextBounds {
-    return &layout.TextBounds{
-        Name: layout.TextConfig{
-            Bounds:    image.Rect(125, 90, 1375, 170),
-            FontSize:  72,
-            Alignment: "center",
-        },
-        Effect: layout.TextConfig{
-            Bounds:    image.Rect(160, 1250, 1340, 1750),
-            FontSize:  48,
-            Alignment: "left",
-        },
-    }
+func (t *SpellTemplate) GetTextBounds(data *card.CardDTO) map[string]image.Rectangle {
+    bounds := make(map[string]image.Rectangle)
+    bounds["name"] = image.Rect(125, 90, 1375, 170)
+    bounds["cost"] = image.Rect(125, 90, 1375, 170)
+    bounds["type"] = image.Rect(125, 1885, 1375, 1955)
+    bounds["effect"] = image.Rect(160, 1250, 1340, 1750)
+    bounds["collector"] = image.Rect(110, 2010, 750, 2090)
+    return bounds
 }
