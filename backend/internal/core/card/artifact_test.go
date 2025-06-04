@@ -71,24 +71,24 @@ func TestArtifactValidation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.artifact.Validate()
-			
+
 			if tt.expectError && err == nil {
 				t.Errorf("Expected error but got none")
 				return
 			}
-			
+
 			if !tt.expectError && err != nil {
 				t.Errorf("Expected no error but got: %v", err)
 				return
 			}
-			
+
 			if tt.expectError {
 				valErr, ok := err.(ValidationError)
 				if !ok {
 					t.Errorf("Expected ValidationError but got different error type: %T", err)
 					return
 				}
-				
+
 				if valErr.Field != tt.errorField {
 					t.Errorf("Expected error on field %s but got error on field %s", tt.errorField, valErr.Field)
 				}
@@ -113,27 +113,27 @@ func TestArtifactToDTO(t *testing.T) {
 		},
 		IsEquipment: true,
 	}
-	
+
 	// Convert to DTO
 	dto := artifact.ToDTO()
-	
+
 	// Verify base fields
 	if dto.ID != artifact.ID {
 		t.Errorf("Expected ID %s, got %s", artifact.ID, dto.ID)
 	}
-	
+
 	if dto.Name != artifact.Name {
 		t.Errorf("Expected Name %s, got %s", artifact.Name, dto.Name)
 	}
-	
+
 	if dto.Cost != artifact.Cost {
 		t.Errorf("Expected Cost %d, got %d", artifact.Cost, dto.Cost)
 	}
-	
+
 	if dto.Effect != artifact.Effect {
 		t.Errorf("Expected Effect %s, got %s", artifact.Effect, dto.Effect)
 	}
-	
+
 	// Verify artifact-specific fields
 	if dto.IsEquipment != artifact.IsEquipment {
 		t.Errorf("Expected IsEquipment %v, got %v", artifact.IsEquipment, dto.IsEquipment)
@@ -152,31 +152,31 @@ func TestNewArtifactFromDTO(t *testing.T) {
 		Keywords:    []string{"EQUIPMENT"},
 		Metadata:    map[string]string{"set": "Test Set"},
 	}
-	
+
 	// Create artifact from DTO
 	artifact := NewArtifactFromDTO(dto)
-	
+
 	// Verify base fields
 	if artifact.ID != dto.ID {
 		t.Errorf("Expected ID %s, got %s", dto.ID, artifact.ID)
 	}
-	
+
 	if artifact.Name != dto.Name {
 		t.Errorf("Expected Name %s, got %s", dto.Name, artifact.Name)
 	}
-	
+
 	if artifact.Cost != dto.Cost {
 		t.Errorf("Expected Cost %d, got %d", dto.Cost, artifact.Cost)
 	}
-	
+
 	if artifact.Effect != dto.Effect {
 		t.Errorf("Expected Effect %s, got %s", dto.Effect, artifact.Effect)
 	}
-	
+
 	if len(artifact.Keywords) != len(dto.Keywords) {
 		t.Errorf("Expected %d keywords, got %d", len(dto.Keywords), len(artifact.Keywords))
 	}
-	
+
 	// Verify artifact-specific fields
 	if artifact.IsEquipment != dto.IsEquipment {
 		t.Errorf("Expected IsEquipment %v, got %v", dto.IsEquipment, artifact.IsEquipment)
@@ -214,7 +214,7 @@ func TestDetermineIsEquipment(t *testing.T) {
 		t.Run(tt.effect, func(t *testing.T) {
 			result := DetermineIsEquipment(tt.effect)
 			if result != tt.expectedIsEquip {
-				t.Errorf("Expected DetermineIsEquipment to return %v for effect %q, but got %v", 
+				t.Errorf("Expected DetermineIsEquipment to return %v for effect %q, but got %v",
 					tt.expectedIsEquip, tt.effect, result)
 			}
 		})
@@ -222,7 +222,7 @@ func TestDetermineIsEquipment(t *testing.T) {
 }
 
 func TestAutosetEquipment(t *testing.T) {
-	// Test that artifacts with "equip" or "equipped" in their effect 
+	// Test that artifacts with "equip" or "equipped" in their effect
 	// automatically get IsEquipment set to true
 	dto := &CardDTO{
 		Type:   TypeArtifact,
@@ -231,13 +231,13 @@ func TestAutosetEquipment(t *testing.T) {
 		Effect: "Equip: 2",
 		// IsEquipment not explicitly set
 	}
-	
+
 	artifact := NewArtifactFromDTO(dto)
-	
+
 	if !artifact.IsEquipment {
 		t.Errorf("Expected IsEquipment to be automatically set to true for effect containing 'equipped'")
 	}
-	
+
 	// Also check that the EQUIPMENT keyword was added
 	hasEquipmentKeyword := false
 	for _, keyword := range artifact.Keywords {
@@ -246,7 +246,7 @@ func TestAutosetEquipment(t *testing.T) {
 			break
 		}
 	}
-	
+
 	if !hasEquipmentKeyword {
 		t.Errorf("Expected EQUIPMENT keyword to be automatically added")
 	}

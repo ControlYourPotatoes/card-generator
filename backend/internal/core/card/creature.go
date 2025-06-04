@@ -44,20 +44,20 @@ func (c *Creature) Validate() error {
 	if err := c.BaseCard.Validate(); err != nil {
 		return err
 	}
-	
+
 	// Validate creature-specific fields
 	if c.Attack < 0 {
 		return NewValidationError("attack cannot be negative", "attack")
 	}
-	
+
 	if c.Defense < 0 {
 		return NewValidationError("defense cannot be negative", "defense")
 	}
-	
+
 	if c.Trait != "" && !c.Trait.IsValid() {
 		return NewValidationError("invalid trait: "+string(c.Trait), "trait")
 	}
-	
+
 	return nil
 }
 

@@ -27,7 +27,7 @@ type Card interface {
 	GetCost() int
 	GetEffect() string
 	GetType() CardType
-	GetKeywords() []string  
+	GetKeywords() []string
 	GetMetadata() map[string]string
 	Validate() error
 	ToDTO() *CardDTO
@@ -36,24 +36,24 @@ type Card interface {
 
 // BaseCard provides common functionality for all card types
 type BaseCard struct {
-	ID        string            // Database ID
+	ID        string // Database ID
 	Name      string
 	Cost      int
 	Effect    string
 	Type      CardType
-	Keywords  []string          
+	Keywords  []string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Metadata  map[string]string
 }
 
 // Base getters for BaseCard
-func (b BaseCard) GetID() string               { return b.ID }
-func (b BaseCard) GetName() string             { return b.Name }
-func (b BaseCard) GetCost() int                { return b.Cost }
-func (b BaseCard) GetEffect() string           { return b.Effect }
-func (b BaseCard) GetType() CardType           { return b.Type }
-func (b BaseCard) GetKeywords() []string       { return b.Keywords }
+func (b BaseCard) GetID() string                  { return b.ID }
+func (b BaseCard) GetName() string                { return b.Name }
+func (b BaseCard) GetCost() int                   { return b.Cost }
+func (b BaseCard) GetEffect() string              { return b.Effect }
+func (b BaseCard) GetType() CardType              { return b.Type }
+func (b BaseCard) GetKeywords() []string          { return b.Keywords }
 func (b BaseCard) GetMetadata() map[string]string { return b.Metadata }
 
 // Validate performs basic validation on the card
@@ -74,9 +74,9 @@ func (b BaseCard) Validate() error {
 
 // Temporary error definitions - these will move to a validation package
 var (
-	ErrEmptyName    = NewValidationError("name cannot be empty", "name")
-	ErrEmptyEffect  = NewValidationError("effect cannot be empty", "effect")
-	ErrInvalidCost  = NewValidationError("cost cannot be negative (except -1 for X costs)", "cost")
+	ErrEmptyName   = NewValidationError("name cannot be empty", "name")
+	ErrEmptyEffect = NewValidationError("effect cannot be empty", "effect")
+	ErrInvalidCost = NewValidationError("cost cannot be negative (except -1 for X costs)", "cost")
 )
 
 // ValidationError defines a simple validation error

@@ -98,24 +98,24 @@ func TestIncantationValidation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.incantation.Validate()
-			
+
 			if tt.expectError && err == nil {
 				t.Errorf("Expected error but got none")
 				return
 			}
-			
+
 			if !tt.expectError && err != nil {
 				t.Errorf("Expected no error but got: %v", err)
 				return
 			}
-			
+
 			if tt.expectError {
 				valErr, ok := err.(ValidationError)
 				if !ok {
 					t.Errorf("Expected ValidationError but got different error type: %T", err)
 					return
 				}
-				
+
 				if valErr.Field != tt.errorField {
 					t.Errorf("Expected error on field %s but got error on field %s", tt.errorField, valErr.Field)
 				}
@@ -140,27 +140,27 @@ func TestIncantationToDTO(t *testing.T) {
 		},
 		Timing: "ON ATTACK",
 	}
-	
+
 	// Convert to DTO
 	dto := incantation.ToDTO()
-	
+
 	// Verify base fields
 	if dto.ID != incantation.ID {
 		t.Errorf("Expected ID %s, got %s", incantation.ID, dto.ID)
 	}
-	
+
 	if dto.Name != incantation.Name {
 		t.Errorf("Expected Name %s, got %s", incantation.Name, dto.Name)
 	}
-	
+
 	if dto.Cost != incantation.Cost {
 		t.Errorf("Expected Cost %d, got %d", incantation.Cost, dto.Cost)
 	}
-	
+
 	if dto.Effect != incantation.Effect {
 		t.Errorf("Expected Effect %s, got %s", incantation.Effect, dto.Effect)
 	}
-	
+
 	// Verify incantation-specific fields
 	if dto.Timing != incantation.Timing {
 		t.Errorf("Expected Timing %s, got %s", incantation.Timing, dto.Timing)
@@ -179,31 +179,31 @@ func TestNewIncantationFromDTO(t *testing.T) {
 		Keywords: []string{"COUNTER"},
 		Metadata: map[string]string{"set": "Test Set"},
 	}
-	
+
 	// Create incantation from DTO
 	incantation := NewIncantationFromDTO(dto)
-	
+
 	// Verify base fields
 	if incantation.ID != dto.ID {
 		t.Errorf("Expected ID %s, got %s", dto.ID, incantation.ID)
 	}
-	
+
 	if incantation.Name != dto.Name {
 		t.Errorf("Expected Name %s, got %s", dto.Name, incantation.Name)
 	}
-	
+
 	if incantation.Cost != dto.Cost {
 		t.Errorf("Expected Cost %d, got %d", dto.Cost, incantation.Cost)
 	}
-	
+
 	if incantation.Effect != dto.Effect {
 		t.Errorf("Expected Effect %s, got %s", dto.Effect, incantation.Effect)
 	}
-	
+
 	if len(incantation.Keywords) != len(dto.Keywords) {
 		t.Errorf("Expected %d keywords, got %d", len(dto.Keywords), len(incantation.Keywords))
 	}
-	
+
 	// Verify incantation-specific fields
 	if incantation.Timing != dto.Timing {
 		t.Errorf("Expected Timing %s, got %s", dto.Timing, incantation.Timing)
@@ -212,31 +212,31 @@ func TestNewIncantationFromDTO(t *testing.T) {
 
 func TestDetermineTiming(t *testing.T) {
 	tests := []struct {
-		effect        string
+		effect         string
 		expectedTiming string
 	}{
 		{
-			effect:        "ON ANY CLASH: Draw a card.",
+			effect:         "ON ANY CLASH: Draw a card.",
 			expectedTiming: "ON ANY CLASH",
 		},
 		{
-			effect:        "When your opponent declares attackers, ON ANY CLASH: Counter target spell.",
+			effect:         "When your opponent declares attackers, ON ANY CLASH: Counter target spell.",
 			expectedTiming: "ON ANY CLASH",
 		},
 		{
-			effect:        "ON ATTACK: Deal 2 damage to target creature.",
+			effect:         "ON ATTACK: Deal 2 damage to target creature.",
 			expectedTiming: "ON ATTACK",
 		},
 		{
-			effect:        "ON ATTACK: Your creatures get +1/+1 until end of turn.",
+			effect:         "ON ATTACK: Your creatures get +1/+1 until end of turn.",
 			expectedTiming: "ON ATTACK",
 		},
 		{
-			effect:        "Counter target spell.",
+			effect:         "Counter target spell.",
 			expectedTiming: "",
 		},
 		{
-			effect:        "Draw two cards.",
+			effect:         "Draw two cards.",
 			expectedTiming: "",
 		},
 	}
@@ -245,7 +245,7 @@ func TestDetermineTiming(t *testing.T) {
 		t.Run(tt.effect, func(t *testing.T) {
 			result := DetermineTiming(tt.effect)
 			if result != tt.expectedTiming {
-				t.Errorf("Expected DetermineTiming to return %v for effect %q, but got %v", 
+				t.Errorf("Expected DetermineTiming to return %v for effect %q, but got %v",
 					tt.expectedTiming, tt.effect, result)
 			}
 		})

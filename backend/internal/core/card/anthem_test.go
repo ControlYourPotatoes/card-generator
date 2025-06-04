@@ -72,24 +72,24 @@ func TestAnthemValidation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.anthem.Validate()
-			
+
 			if tt.expectError && err == nil {
 				t.Errorf("Expected error but got none")
 				return
 			}
-			
+
 			if !tt.expectError && err != nil {
 				t.Errorf("Expected no error but got: %v", err)
 				return
 			}
-			
+
 			if tt.expectError {
 				valErr, ok := err.(ValidationError)
 				if !ok {
 					t.Errorf("Expected ValidationError but got different error type: %T", err)
 					return
 				}
-				
+
 				if valErr.Field != tt.errorField {
 					t.Errorf("Expected error on field %s but got error on field %s", tt.errorField, valErr.Field)
 				}
@@ -114,27 +114,27 @@ func TestAnthemToDTO(t *testing.T) {
 		},
 		Continuous: true,
 	}
-	
+
 	// Convert to DTO
 	dto := anthem.ToDTO()
-	
+
 	// Verify base fields
 	if dto.ID != anthem.ID {
 		t.Errorf("Expected ID %s, got %s", anthem.ID, dto.ID)
 	}
-	
+
 	if dto.Name != anthem.Name {
 		t.Errorf("Expected Name %s, got %s", anthem.Name, dto.Name)
 	}
-	
+
 	if dto.Cost != anthem.Cost {
 		t.Errorf("Expected Cost %d, got %d", anthem.Cost, dto.Cost)
 	}
-	
+
 	if dto.Effect != anthem.Effect {
 		t.Errorf("Expected Effect %s, got %s", anthem.Effect, dto.Effect)
 	}
-	
+
 	// Verify anthem-specific fields
 	if dto.Continuous != anthem.Continuous {
 		t.Errorf("Expected Continuous %v, got %v", anthem.Continuous, dto.Continuous)
@@ -153,31 +153,31 @@ func TestNewAnthemFromDTO(t *testing.T) {
 		Keywords:   []string{"BUFF"},
 		Metadata:   map[string]string{"set": "Test Set"},
 	}
-	
+
 	// Create anthem from DTO
 	anthem := NewAnthemFromDTO(dto)
-	
+
 	// Verify base fields
 	if anthem.ID != dto.ID {
 		t.Errorf("Expected ID %s, got %s", dto.ID, anthem.ID)
 	}
-	
+
 	if anthem.Name != dto.Name {
 		t.Errorf("Expected Name %s, got %s", dto.Name, anthem.Name)
 	}
-	
+
 	if anthem.Cost != dto.Cost {
 		t.Errorf("Expected Cost %d, got %d", dto.Cost, anthem.Cost)
 	}
-	
+
 	if anthem.Effect != dto.Effect {
 		t.Errorf("Expected Effect %s, got %s", dto.Effect, anthem.Effect)
 	}
-	
+
 	if len(anthem.Keywords) != len(dto.Keywords) {
 		t.Errorf("Expected %d keywords, got %d", len(dto.Keywords), len(anthem.Keywords))
 	}
-	
+
 	// Verify anthem-specific fields
 	if anthem.Continuous != dto.Continuous {
 		t.Errorf("Expected Continuous %v, got %v", dto.Continuous, anthem.Continuous)

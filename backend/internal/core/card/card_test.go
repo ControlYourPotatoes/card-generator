@@ -1,8 +1,8 @@
 package card
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 // TestMain is the main entry point for running tests
@@ -10,12 +10,12 @@ import (
 func TestMain(m *testing.M) {
 	// Run the tests
 	result := m.Run()
-	
+
 	// If tests fail, print a message
 	if result != 0 {
 		fmt.Println("Some tests failed")
 	}
-	
+
 	// Exit with the test result code
 	// But just return for now since we're not running this directly
 }
@@ -30,7 +30,7 @@ func TestCardTypes(t *testing.T) {
 		TypeIncantation,
 		TypeAnthem,
 	}
-	
+
 	expectedTypes := []string{
 		"Creature",
 		"Artifact",
@@ -38,7 +38,7 @@ func TestCardTypes(t *testing.T) {
 		"Incantation",
 		"Anthem",
 	}
-	
+
 	for i, cardType := range types {
 		if string(cardType) != expectedTypes[i] {
 			t.Errorf("Expected card type %s, got %s", expectedTypes[i], cardType)

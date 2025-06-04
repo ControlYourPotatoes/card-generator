@@ -7,25 +7,25 @@ import (
 // CardDTO represents a data transfer object for cards
 // Used for serialization, database operations, and API responses
 type CardDTO struct {
-	ID          string            `json:"id,omitempty"`
-	Type        CardType          `json:"type"`
-	Name        string            `json:"name"`
-	Cost        int               `json:"cost"`
-	Effect      string            `json:"effect"`
-	Keywords    []string          `json:"keywords,omitempty"`
-	
+	ID       string   `json:"id,omitempty"`
+	Type     CardType `json:"type"`
+	Name     string   `json:"name"`
+	Cost     int      `json:"cost"`
+	Effect   string   `json:"effect"`
+	Keywords []string `json:"keywords,omitempty"`
+
 	// Type-specific fields
-	Attack      int               `json:"attack,omitempty"`
-	Defense     int               `json:"defense,omitempty"`
-	Trait       string            `json:"trait,omitempty"`
-	IsEquipment bool              `json:"is_equipment,omitempty"`
-	TargetType  string            `json:"target_type,omitempty"`
-	Timing      string            `json:"timing,omitempty"`
-	Continuous  bool              `json:"continuous,omitempty"`
-	
-	CreatedAt   time.Time         `json:"created_at"`
-	UpdatedAt   time.Time         `json:"updated_at"`
-	Metadata    map[string]string `json:"metadata,omitempty"`
+	Attack      int    `json:"attack,omitempty"`
+	Defense     int    `json:"defense,omitempty"`
+	Trait       string `json:"trait,omitempty"`
+	IsEquipment bool   `json:"is_equipment,omitempty"`
+	TargetType  string `json:"target_type,omitempty"`
+	Timing      string `json:"timing,omitempty"`
+	Continuous  bool   `json:"continuous,omitempty"`
+
+	CreatedAt time.Time         `json:"created_at"`
+	UpdatedAt time.Time         `json:"updated_at"`
+	Metadata  map[string]string `json:"metadata,omitempty"`
 }
 
 // ToDTO converts BaseCard to CardDTO

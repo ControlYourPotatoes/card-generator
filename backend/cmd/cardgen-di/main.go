@@ -199,4 +199,4 @@ func writeJSON(filename string, cards []CardOutput) error {
 	}
 
 	return nil
-} 
+}

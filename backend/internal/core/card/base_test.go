@@ -113,17 +113,17 @@ func TestBaseCardValidate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.card.Validate()
-			
+
 			if tt.expectError && err == nil {
 				t.Errorf("Expected error but got none")
 				return
 			}
-			
+
 			if !tt.expectError && err != nil {
 				t.Errorf("Expected no error but got: %v", err)
 				return
 			}
-			
+
 			if tt.expectError {
 				if err.Error() != tt.errorType.Error() {
 					t.Errorf("Expected error %v but got %v", tt.errorType, err)
@@ -136,7 +136,7 @@ func TestBaseCardValidate(t *testing.T) {
 func TestBaseCardToDTO(t *testing.T) {
 	// Setup test time
 	now := time.Now().Truncate(time.Second)
-	
+
 	// Setup a test card
 	baseCard := BaseCard{
 		ID:        "1",
@@ -152,31 +152,31 @@ func TestBaseCardToDTO(t *testing.T) {
 			"set":    "Core Set",
 		},
 	}
-	
+
 	// Convert to DTO
 	dto := baseCard.ToDTO()
-	
+
 	// Test DTO fields
 	if dto.ID != baseCard.ID {
 		t.Errorf("Expected ID %s, got %s", baseCard.ID, dto.ID)
 	}
-	
+
 	if dto.Name != baseCard.Name {
 		t.Errorf("Expected Name %s, got %s", baseCard.Name, dto.Name)
 	}
-	
+
 	if dto.Cost != baseCard.Cost {
 		t.Errorf("Expected Cost %d, got %d", baseCard.Cost, dto.Cost)
 	}
-	
+
 	if dto.Effect != baseCard.Effect {
 		t.Errorf("Expected Effect %s, got %s", baseCard.Effect, dto.Effect)
 	}
-	
+
 	if dto.Type != baseCard.Type {
 		t.Errorf("Expected Type %s, got %s", baseCard.Type, dto.Type)
 	}
-	
+
 	if len(dto.Keywords) != len(baseCard.Keywords) {
 		t.Errorf("Expected %d keywords, got %d", len(baseCard.Keywords), len(dto.Keywords))
 	} else {
@@ -186,15 +186,15 @@ func TestBaseCardToDTO(t *testing.T) {
 			}
 		}
 	}
-	
+
 	if !dto.CreatedAt.Equal(baseCard.CreatedAt) {
 		t.Errorf("Expected CreatedAt %v, got %v", baseCard.CreatedAt, dto.CreatedAt)
 	}
-	
+
 	if !dto.UpdatedAt.Equal(baseCard.UpdatedAt) {
 		t.Errorf("Expected UpdatedAt %v, got %v", baseCard.UpdatedAt, dto.UpdatedAt)
 	}
-	
+
 	if len(dto.Metadata) != len(baseCard.Metadata) {
 		t.Errorf("Expected %d metadata entries, got %d", len(baseCard.Metadata), len(dto.Metadata))
 	} else {

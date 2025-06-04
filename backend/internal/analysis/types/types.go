@@ -9,13 +9,12 @@ import (
 
 // We can add helper functions specific to tagging if needed
 func ExtractTaggableData(c *card.CardData) map[string]interface{} {
-    return map[string]interface{}{
-        "type":         c.Type,
-        "effect":       c.Effect,
-        "keywords":     c.Keywords,
-        "tribes":       c.Tribes,
-        "cost":         c.Cost,
-        "traits":       c.Traits,
-    }
+	return map[string]interface{}{
+		"type":     c.Type,
+		"effect":   c.Effect,
+		"keywords": c.Keywords,
+		"tribes":   c.Tribes,
+		"cost":     c.Cost,
+		"traits":   c.Traits,
+	}
 }
-

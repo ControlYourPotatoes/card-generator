@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ControlYourPotatoes/card-generator/internal/parser"
-	"github.com/ControlYourPotatoes/card-generator/internal/storage/database"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/parser"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/storage/database"
 )
 
 func main() {

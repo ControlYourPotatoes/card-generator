@@ -48,13 +48,13 @@ func NewArtifactFromDTO(dto *CardDTO) *Artifact {
 		BaseCard:    NewBaseCardFromDTO(dto),
 		IsEquipment: dto.IsEquipment,
 	}
-	
+
 	// If it has equipment-related text but IsEquipment flag is not set,
 	// automatically set it
 	if !artifact.IsEquipment && hasEquipmentText(artifact.Effect) {
 		artifact.IsEquipment = true
 	}
-	
+
 	// Add EQUIPMENT keyword if missing
 	if artifact.IsEquipment {
 		hasEquipmentKeyword := false
@@ -64,12 +64,12 @@ func NewArtifactFromDTO(dto *CardDTO) *Artifact {
 				break
 			}
 		}
-		
+
 		if !hasEquipmentKeyword {
 			artifact.Keywords = append(artifact.Keywords, "EQUIPMENT")
 		}
 	}
-	
+
 	return artifact
 }
 
@@ -82,7 +82,7 @@ func DetermineIsEquipment(effect string) bool {
 // hasEquipmentText checks if the text contains equipment-related keywords
 func hasEquipmentText(text string) bool {
 	effectLower := strings.ToLower(text)
-	return strings.Contains(effectLower, "equip") || 
-	       strings.Contains(effectLower, "equippment") ||
-		   strings.Contains(effectLower, "equipped")
+	return strings.Contains(effectLower, "equip") ||
+		strings.Contains(effectLower, "equippment") ||
+		strings.Contains(effectLower, "equipped")
 }

@@ -111,24 +111,24 @@ func TestSpellValidation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.spell.Validate()
-			
+
 			if tt.expectError && err == nil {
 				t.Errorf("Expected error but got none")
 				return
 			}
-			
+
 			if !tt.expectError && err != nil {
 				t.Errorf("Expected no error but got: %v", err)
 				return
 			}
-			
+
 			if tt.expectError {
 				valErr, ok := err.(ValidationError)
 				if !ok {
 					t.Errorf("Expected ValidationError but got different error type: %T", err)
 					return
 				}
-				
+
 				if valErr.Field != tt.errorField {
 					t.Errorf("Expected error on field %s but got error on field %s", tt.errorField, valErr.Field)
 				}
@@ -153,27 +153,27 @@ func TestSpellToDTO(t *testing.T) {
 		},
 		TargetType: "Creature",
 	}
-	
+
 	// Convert to DTO
 	dto := spell.ToDTO()
-	
+
 	// Verify base fields
 	if dto.ID != spell.ID {
 		t.Errorf("Expected ID %s, got %s", spell.ID, dto.ID)
 	}
-	
+
 	if dto.Name != spell.Name {
 		t.Errorf("Expected Name %s, got %s", spell.Name, dto.Name)
 	}
-	
+
 	if dto.Cost != spell.Cost {
 		t.Errorf("Expected Cost %d, got %d", spell.Cost, dto.Cost)
 	}
-	
+
 	if dto.Effect != spell.Effect {
 		t.Errorf("Expected Effect %s, got %s", spell.Effect, dto.Effect)
 	}
-	
+
 	// Verify spell-specific fields
 	if dto.TargetType != spell.TargetType {
 		t.Errorf("Expected TargetType %s, got %s", spell.TargetType, dto.TargetType)
@@ -192,31 +192,31 @@ func TestNewSpellFromDTO(t *testing.T) {
 		Keywords:   []string{"DAMAGE"},
 		Metadata:   map[string]string{"set": "Test Set"},
 	}
-	
+
 	// Create spell from DTO
 	spell := NewSpellFromDTO(dto)
-	
+
 	// Verify base fields
 	if spell.ID != dto.ID {
 		t.Errorf("Expected ID %s, got %s", dto.ID, spell.ID)
 	}
-	
+
 	if spell.Name != dto.Name {
 		t.Errorf("Expected Name %s, got %s", dto.Name, spell.Name)
 	}
-	
+
 	if spell.Cost != dto.Cost {
 		t.Errorf("Expected Cost %d, got %d", dto.Cost, spell.Cost)
 	}
-	
+
 	if spell.Effect != dto.Effect {
 		t.Errorf("Expected Effect %s, got %s", dto.Effect, spell.Effect)
 	}
-	
+
 	if len(spell.Keywords) != len(dto.Keywords) {
 		t.Errorf("Expected %d keywords, got %d", len(dto.Keywords), len(spell.Keywords))
 	}
-	
+
 	// Verify spell-specific fields
 	if spell.TargetType != dto.TargetType {
 		t.Errorf("Expected TargetType %s, got %s", dto.TargetType, spell.TargetType)
@@ -225,31 +225,31 @@ func TestNewSpellFromDTO(t *testing.T) {
 
 func TestDetermineTargetType(t *testing.T) {
 	tests := []struct {
-		effect           string
+		effect             string
 		expectedTargetType string
 	}{
 		{
-			effect:           "Deal 3 damage to target creature.",
+			effect:             "Deal 3 damage to target creature.",
 			expectedTargetType: "Creature",
 		},
 		{
-			effect:           "TARGET CREATURE gets -2/-2 until end of turn.",
+			effect:             "TARGET CREATURE gets -2/-2 until end of turn.",
 			expectedTargetType: "Creature",
 		},
 		{
-			effect:           "Target player discards two cards.",
+			effect:             "Target player discards two cards.",
 			expectedTargetType: "Player",
 		},
 		{
-			effect:           "Deal 1 damage to TARGET PLAYER.",
+			effect:             "Deal 1 damage to TARGET PLAYER.",
 			expectedTargetType: "Player",
 		},
 		{
-			effect:           "Return all creatures to their owners' hands.",
+			effect:             "Return all creatures to their owners' hands.",
 			expectedTargetType: "Any",
 		},
 		{
-			effect:           "All players draw a card.",
+			effect:             "All players draw a card.",
 			expectedTargetType: "Any",
 		},
 	}
@@ -258,7 +258,7 @@ func TestDetermineTargetType(t *testing.T) {
 		t.Run(tt.effect, func(t *testing.T) {
 			result := DetermineTargetType(tt.effect)
 			if result != tt.expectedTargetType {
-				t.Errorf("Expected DetermineTargetType to return %v for effect %q, but got %v", 
+				t.Errorf("Expected DetermineTargetType to return %v for effect %q, but got %v",
 					tt.expectedTargetType, tt.effect, result)
 			}
 		})

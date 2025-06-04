@@ -111,24 +111,24 @@ func TestCreatureValidation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.creature.Validate()
-			
+
 			if tt.expectError && err == nil {
 				t.Errorf("Expected error but got none")
 				return
 			}
-			
+
 			if !tt.expectError && err != nil {
 				t.Errorf("Expected no error but got: %v", err)
 				return
 			}
-			
+
 			if tt.expectError {
 				valErr, ok := err.(ValidationError)
 				if !ok {
 					t.Errorf("Expected ValidationError but got different error type: %T", err)
 					return
 				}
-				
+
 				if valErr.Field != tt.errorField {
 					t.Errorf("Expected error on field %s but got error on field %s", tt.errorField, valErr.Field)
 				}
@@ -155,36 +155,36 @@ func TestCreatureToDTO(t *testing.T) {
 		Defense: 4,
 		Trait:   TraitDragon,
 	}
-	
+
 	// Convert to DTO
 	dto := creature.ToDTO()
-	
+
 	// Verify base fields
 	if dto.ID != creature.ID {
 		t.Errorf("Expected ID %s, got %s", creature.ID, dto.ID)
 	}
-	
+
 	if dto.Name != creature.Name {
 		t.Errorf("Expected Name %s, got %s", creature.Name, dto.Name)
 	}
-	
+
 	if dto.Cost != creature.Cost {
 		t.Errorf("Expected Cost %d, got %d", creature.Cost, dto.Cost)
 	}
-	
+
 	if dto.Effect != creature.Effect {
 		t.Errorf("Expected Effect %s, got %s", creature.Effect, dto.Effect)
 	}
-	
+
 	// Verify creature-specific fields
 	if dto.Attack != creature.Attack {
 		t.Errorf("Expected Attack %d, got %d", creature.Attack, dto.Attack)
 	}
-	
+
 	if dto.Defense != creature.Defense {
 		t.Errorf("Expected Defense %d, got %d", creature.Defense, dto.Defense)
 	}
-	
+
 	if dto.Trait != string(creature.Trait) {
 		t.Errorf("Expected Trait %s, got %s", creature.Trait, dto.Trait)
 	}
@@ -204,40 +204,40 @@ func TestNewCreatureFromDTO(t *testing.T) {
 		Keywords: []string{"HASTE", "DOUBLE STRIKE"},
 		Metadata: map[string]string{"set": "Test Set"},
 	}
-	
+
 	// Create creature from DTO
 	creature := NewCreatureFromDTO(dto)
-	
+
 	// Verify base fields
 	if creature.ID != dto.ID {
 		t.Errorf("Expected ID %s, got %s", dto.ID, creature.ID)
 	}
-	
+
 	if creature.Name != dto.Name {
 		t.Errorf("Expected Name %s, got %s", dto.Name, creature.Name)
 	}
-	
+
 	if creature.Cost != dto.Cost {
 		t.Errorf("Expected Cost %d, got %d", dto.Cost, creature.Cost)
 	}
-	
+
 	if creature.Effect != dto.Effect {
 		t.Errorf("Expected Effect %s, got %s", dto.Effect, creature.Effect)
 	}
-	
+
 	if len(creature.Keywords) != len(dto.Keywords) {
 		t.Errorf("Expected %d keywords, got %d", len(dto.Keywords), len(creature.Keywords))
 	}
-	
+
 	// Verify creature-specific fields
 	if creature.Attack != dto.Attack {
 		t.Errorf("Expected Attack %d, got %d", dto.Attack, creature.Attack)
 	}
-	
+
 	if creature.Defense != dto.Defense {
 		t.Errorf("Expected Defense %d, got %d", dto.Defense, creature.Defense)
 	}
-	
+
 	if string(creature.Trait) != dto.Trait {
 		t.Errorf("Expected Trait %s, got %s", dto.Trait, creature.Trait)
 	}
@@ -254,20 +254,20 @@ func TestTraitValidation(t *testing.T) {
 		TraitAncient,
 		TraitDivine,
 	}
-	
+
 	for _, trait := range validTraits {
 		if !trait.IsValid() {
 			t.Errorf("Expected trait %s to be valid", trait)
 		}
 	}
-	
+
 	invalidTraits := []Trait{
 		"Unknown",
 		"Monster",
 		"Human",
 		"Elf",
 	}
-	
+
 	for _, trait := range invalidTraits {
 		if trait.IsValid() {
 			t.Errorf("Expected trait %s to be invalid", trait)

@@ -41,7 +41,7 @@ func (a *Anthem) ToData() *CardDTO {
 // NewAnthemFromDTO creates a new Anthem from CardDTO
 func NewAnthemFromDTO(dto *CardDTO) *Anthem {
 	return &Anthem{
-		BaseCard:    NewBaseCardFromDTO(dto),
-		Continuous:  dto.Continuous,
+		BaseCard:   NewBaseCardFromDTO(dto),
+		Continuous: dto.Continuous,
 	}
 }
