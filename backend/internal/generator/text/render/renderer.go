@@ -2,12 +2,13 @@ package render
 
 import (
 	"fmt"
-	"github.com/fogleman/gg"
 	"image"
 	"strings"
 
-	"github.com/ControlYourPotatoes/card-generator/internal/generator/text/manager"
-	"github.com/ControlYourPotatoes/card-generator/internal/generator/text/types"
+	"github.com/fogleman/gg"
+
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/generator/text/manager"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/generator/text/types"
 )
 
 type Renderer struct {

@@ -2,8 +2,9 @@
 package manager
 
 import (
-	"github.com/ControlYourPotatoes/card-generator/internal/generator/text/types"
 	"image"
+
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/generator/text/types"
 )
 
 type LayoutManager struct {

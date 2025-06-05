@@ -4,7 +4,7 @@ import (
 	"image"
 	"testing"
 
-	"github.com/ControlYourPotatoes/card-generator/internal/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
 )
 
 func TestTemplateFactory(t *testing.T) {

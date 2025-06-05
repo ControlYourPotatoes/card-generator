@@ -1,7 +1,7 @@
 package rules
 
 import (
-	"github.com/ControlYourPotatoes/card-generator/internal/analysis/types"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/analysis/types"
 )
 
 // BaseRules contains the fundamental rules for tag generation

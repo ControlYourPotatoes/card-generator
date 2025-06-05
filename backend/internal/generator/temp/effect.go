@@ -92,7 +92,7 @@ func (ep *effectProcessor) GetKeywordStyle() TextConfig {
 }
 
 // ProcessFullEffect processes both keywords and effect text
-func (ep *effectProcessor) ProcessFullEffect(cardData *card.CardData) (*struct {
+func (ep *effectProcessor) ProcessFullEffect(cardData *card.CardDTO) (*struct {
 	KeywordBounds TextBounds
 	EffectBounds  TextBounds
 }, error) {

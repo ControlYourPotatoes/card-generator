@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
-	"github.com/ControlYourPotatoes/card-generator/internal/storage/database/migration"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/storage/database/migration"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

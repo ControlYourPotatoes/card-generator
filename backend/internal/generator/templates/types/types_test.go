@@ -4,18 +4,18 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ControlYourPotatoes/card-generator/internal/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
 )
 
 func TestCreatureTemplate(t *testing.T) {
 	tests := []struct {
 		name          string
-		cardData      *card.CardData
+		cardData      *card.CardDTO
 		expectedFrame string
 	}{
 		{
 			name: "Basic Creature",
-			cardData: &card.CardData{
+			cardData: &card.CardDTO{
 				Type:    card.TypeCreature,
 				Name:    "Test Creature",
 				Cost:    2,
@@ -27,7 +27,7 @@ func TestCreatureTemplate(t *testing.T) {
 		},
 		{
 			name: "Legendary Creature",
-			cardData: &card.CardData{
+			cardData: &card.CardDTO{
 				Type:    card.TypeCreature,
 				Name:    "Legendary Creature",
 				Cost:    2,
@@ -61,7 +61,7 @@ func TestCreatureTemplate(t *testing.T) {
 			if bounds == nil {
 				t.Error("text bounds should not be nil")
 			}
-			if bounds.Stats == nil {
+			if _, hasStats := bounds["Stats"]; !hasStats {
 				t.Error("creature template should have stats bounds")
 			}
 		})
@@ -71,12 +71,12 @@ func TestCreatureTemplate(t *testing.T) {
 func TestSpellTemplate(t *testing.T) {
 	tests := []struct {
 		name          string
-		cardData      *card.CardData
+		cardData      *card.CardDTO
 		expectedFrame string
 	}{
 		{
 			name: "Basic Spell",
-			cardData: &card.CardData{
+			cardData: &card.CardDTO{
 				Type:       card.TypeSpell,
 				Name:       "Test Spell",
 				Cost:       2,

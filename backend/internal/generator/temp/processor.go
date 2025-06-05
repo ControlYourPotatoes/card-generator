@@ -158,4 +158,9 @@ func (c *cardImpl) GetName() string        { return c.data.Name }
 func (c *cardImpl) GetCost() int           { return c.data.Cost }
 func (c *cardImpl) GetEffect() string      { return c.data.Effect }
 func (c *cardImpl) GetType() card.CardType { return c.data.Type }
+func (c *cardImpl) GetID() string          { return c.data.ID }
+func (c *cardImpl) GetKeywords() []string  { return c.data.Keywords }
+func (c *cardImpl) GetMetadata() map[string]string { return c.data.Metadata }
+func (c *cardImpl) ToDTO() *card.CardDTO   { return c.data }
+func (c *cardImpl) ToData() *card.CardDTO  { return c.data }
 func (c *cardImpl) Validate() error        { return nil } // Add proper validation if needed

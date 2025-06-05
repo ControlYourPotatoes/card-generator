@@ -1,8 +1,8 @@
 package rules
 
 import (
-	"github.com/ControlYourPotatoes/card-generator/internal/analysis/types"
-	"github.com/ControlYourPotatoes/card-generator/internal/core/common"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/analysis/types"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/common"
 )
 
 // TribalTypes defines all supported tribal types

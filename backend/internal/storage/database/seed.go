@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
 )
 
 // Seeder is responsible for seeding the database with initial data

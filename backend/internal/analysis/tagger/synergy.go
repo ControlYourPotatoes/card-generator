@@ -3,8 +3,8 @@ package tagger
 import (
 	"strings"
 
-	"github.com/ControlYourPotatoes/card-generator/internal/analysis/types"
-	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/analysis/types"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
 )
 
 // SynergyDetector handles detection of card synergies
@@ -80,7 +80,7 @@ func NewSynergyDetector() *SynergyDetector {
 }
 
 // AnalyzeSynergies detects potential synergies
-func (sd *SynergyDetector) AnalyzeSynergies(card *card.CardData) []types.Tag {
+func (sd *SynergyDetector) AnalyzeSynergies(card *card.CardDTO) []types.Tag {
 	var tags []types.Tag
 
 	// Check tribal synergies

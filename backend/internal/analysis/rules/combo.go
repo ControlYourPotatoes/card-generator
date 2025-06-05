@@ -1,7 +1,9 @@
 package rules
 
 import (
-	"github.com/ControlYourPotatoes/card-generator/internal/analysis/types"
+	"strings"
+
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/analysis/types"
 )
 
 // ComboPatterns defines patterns that indicate combo potential

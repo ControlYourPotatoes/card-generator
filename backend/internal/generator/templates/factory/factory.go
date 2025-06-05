@@ -9,8 +9,21 @@ import (
 	"github.com/ControlYourPotatoes/card-generator/backend/internal/generator/templates/types"
 )
 
-// NewTemplate creates the appropriate template type
+// OutputFormat defines the output format for card generation
+type OutputFormat string
+
+const (
+	FormatPNG OutputFormat = "png"
+	FormatSVG OutputFormat = "svg"
+)
+
+// NewTemplate creates the appropriate template type (PNG format for backward compatibility)
 func NewTemplate(cardType card.CardType) (base.Template, error) {
+	return NewPNGTemplate(cardType)
+}
+
+// NewPNGTemplate creates PNG templates (existing logic, now explicitly named)
+func NewPNGTemplate(cardType card.CardType) (base.Template, error) {
 	var template base.Template
 	var err error
 
@@ -30,7 +43,7 @@ func NewTemplate(cardType card.CardType) (base.Template, error) {
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to create template: %w", err)
+		return nil, fmt.Errorf("failed to create PNG template: %w", err)
 	}
 
 	return template, nil

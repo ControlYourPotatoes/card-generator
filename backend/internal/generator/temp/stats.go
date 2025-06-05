@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"image"
 
-	"github.com/ControlYourPotatoes/card-generator/internal/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
 )
 
 type statsProcessor struct {
@@ -71,7 +71,7 @@ func (sp *statsProcessor) ValidateStats(c card.Card) error {
 				"Ancient":   true,
 				"Divine":    true,
 			}
-			if !validTraits[cardData.Trait] {
+			if !validTraits[string(cardData.Trait)] {
 				return fmt.Errorf("invalid trait: %s", cardData.Trait)
 			}
 		}

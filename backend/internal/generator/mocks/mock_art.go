@@ -8,7 +8,7 @@ import (
 	"image/draw"
 	"time"
 
-	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
 )
 
 // MockArtProcessor simulates fetching art with configurable behavior
@@ -33,7 +33,7 @@ func (m *MockArtProcessor) SimulateNetworkError(cardName string, err error) {
 	m.ErrorCards[cardName] = err
 }
 
-func (m *MockArtProcessor) ProcessArt(data *card.CardData, bounds image.Rectangle) (image.Image, error) {
+func (m *MockArtProcessor) ProcessArt(data *card.CardDTO, bounds image.Rectangle) (image.Image, error) {
 	// Simulate network delay
 	time.Sleep(m.FetchDelay)
 

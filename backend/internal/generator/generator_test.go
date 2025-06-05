@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ControlYourPotatoes/card-generator/internal/card"
-	"github.com/ControlYourPotatoes/card-generator/internal/generator/mocks"
-	"github.com/ControlYourPotatoes/card-generator/internal/generator/text"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/generator/mocks"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/generator/text"
 )
 
 const testOutputDir = "temp_output"
@@ -66,12 +66,12 @@ func TestCardGeneration(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		card    *card.CardData
+		card    *card.CardDTO
 		wantErr bool
 	}{
 		{
 			name: "Basic Creature",
-			card: &card.CardData{
+			card: &card.CardDTO{
 				Type:    card.TypeCreature,
 				Name:    "Mountain Bear",
 				Cost:    3,
@@ -84,7 +84,7 @@ func TestCardGeneration(t *testing.T) {
 		},
 		{
 			name: "Basic Spell",
-			card: &card.CardData{
+			card: &card.CardDTO{
 				Type:       card.TypeSpell,
 				Name:       "Lightning Strike",
 				Cost:       2,
@@ -95,7 +95,7 @@ func TestCardGeneration(t *testing.T) {
 		},
 		{
 			name: "Failed Art Fetch",
-			card: &card.CardData{
+			card: &card.CardDTO{
 				Type:   card.TypeCreature,
 				Name:   "Failed Card",
 				Cost:   1,

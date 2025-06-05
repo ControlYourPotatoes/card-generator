@@ -5,7 +5,7 @@ import (
 	"image"
 	"strings"
 
-	"github.com/ControlYourPotatoes/card-generator/internal/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
 )
 
 type titleProcessor struct {

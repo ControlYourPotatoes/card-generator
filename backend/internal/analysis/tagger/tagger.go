@@ -5,9 +5,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ControlYourPotatoes/card-generator/internal/analysis/rules"
-	"github.com/ControlYourPotatoes/card-generator/internal/analysis/types"
-	"github.com/ControlYourPotatoes/card-generator/internal/core/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/analysis/rules"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/analysis/types"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
 	"github.com/dlclark/regexp2"
 )
 
@@ -49,15 +49,15 @@ func (ct *CardTagger) initializeRules() {
 
 // GenerateTags generates tags for a card
 func (ct *CardTagger) GenerateTags(c interface{}) ([]types.Tag, error) {
-	var cardData *card.CardData
+	var cardData *card.CardDTO
 
 	switch v := c.(type) {
-	case *card.CardData:
+	case *card.CardDTO:
 		cardData = v
 	case card.Card:
-		cardData = v.ToData()
+		cardData = v.ToDTO()
 	default:
-		return nil, fmt.Errorf("invalid card type: must be *card.CardData or card.Card")
+		return nil, fmt.Errorf("invalid card type: must be *card.CardDTO or card.Card")
 	}
 
 	var tags []types.Tag
@@ -66,18 +66,14 @@ func (ct *CardTagger) GenerateTags(c interface{}) ([]types.Tag, error) {
 	basicTags := ct.generateBasicTags(cardData)
 	tags = append(tags, basicTags...)
 
-	// Generate tribal tags using the card's tribes
-	tribalTags := rules.GenerateTribalTags(
-		string(cardData.Type),
-		cardData.Effect,
-		cardData.Tribes,
-	)
-	tags = append(tags, tribalTags...)
-
-	// Generate class-based tags if the card has classes
-	if len(cardData.Classes) > 0 {
-		classTags := ct.generateClassTags(cardData.Classes)
-		tags = append(tags, classTags...)
+	// Generate tribal tags using the card's trait
+	if cardData.Trait != "" {
+		tribalTags := rules.GenerateTribalTags(
+			string(cardData.Type),
+			cardData.Effect,
+			[]string{cardData.Trait},
+		)
+		tags = append(tags, tribalTags...)
 	}
 
 	// Generate combo tags
@@ -118,7 +114,7 @@ func (ct *CardTagger) generateClassTags(classes []string) []types.Tag {
 }
 
 // generateBasicTags creates basic tags based on card properties
-func (ct *CardTagger) generateBasicTags(card *card.CardData) []types.Tag {
+func (ct *CardTagger) generateBasicTags(card *card.CardDTO) []types.Tag {
 	var tags []types.Tag
 
 	// Add type-based tag
@@ -142,7 +138,7 @@ func (ct *CardTagger) generateBasicTags(card *card.CardData) []types.Tag {
 }
 
 // applyRules applies all pattern-based rules to generate tags
-func (ct *CardTagger) applyRules(card *card.CardData) []types.Tag {
+func (ct *CardTagger) applyRules(card *card.CardDTO) []types.Tag {
 	var tags []types.Tag
 
 	for _, rule := range ct.rules {
@@ -159,7 +155,7 @@ func (ct *CardTagger) applyRules(card *card.CardData) []types.Tag {
 }
 
 // ruleMatches checks if a card matches a specific rule
-func (ct *CardTagger) ruleMatches(card *card.CardData, rule types.TagRule) bool {
+func (ct *CardTagger) ruleMatches(card *card.CardDTO, rule types.TagRule) bool {
 	for _, pattern := range rule.Patterns {
 		matched := false
 
@@ -233,7 +229,7 @@ func (ct *CardTagger) checkProximity(pattern, text string, maxDistance int) bool
 }
 
 // checkConditions verifies if a card meets all conditions
-func (ct *CardTagger) checkConditions(card *card.CardData, conditions []types.Condition) bool {
+func (ct *CardTagger) checkConditions(card *card.CardDTO, conditions []types.Condition) bool {
 	for _, condition := range conditions {
 		switch condition.Type {
 		case types.IsType:
@@ -296,7 +292,7 @@ func (ct *CardTagger) categorizeCost(cost int) string {
 	}
 }
 
-func (ct *CardTagger) hasKeyword(card *card.CardData, keyword string) bool {
+func (ct *CardTagger) hasKeyword(card *card.CardDTO, keyword string) bool {
 	return strings.Contains(
 		strings.ToLower(card.Effect),
 		strings.ToLower(keyword),
