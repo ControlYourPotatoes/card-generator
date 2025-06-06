@@ -362,12 +362,240 @@ type EnhancedSVGTemplate interface {
 - [ ] Template composer integrates all components seamlessly
 - [ ] Integration maintains compatibility with existing SVG generator
 
-### **Testing Strategy**
+### **Enhanced Testing Strategy for Phase 3 Development**
 
-- **Unit Tests**: Individual component validation
-- **Integration Tests**: Full pipeline from Inkscape to SVG
-- **Visual Tests**: Boundary guardrails keep text in proper areas
-- **Performance Tests**: Transparency vs coordinate positioning comparison
+#### **Pre-Phase 3 Verification** ✅ **COMPLETED**
+
+**Phase 2 Test Results Confirmed:**
+
+```
+✅ TestSVGGeneratorInterfaceCompatibility - PASS
+✅ TestSVGGeneratorValidation - PASS (4 sub-tests)
+✅ TestBackwardCompatibilityPNGGeneration - PASS
+✅ TestSVGGeneration - PASS
+✅ TestSVGTemplateStructure - PASS
+✅ TestFactoryPatternDualFormat - PASS
+✅ TestPhase2CompletionChecklist - PASS
+🎉 100% Test Success Rate Maintained
+```
+
+#### **Phase 3a Testing: Ingestion Pipeline**
+
+**Unit Tests for Inkscape Parser:**
+
+```go
+// Test naming convention detection
+func TestInkscapeObjectDetection(t *testing.T)
+func TestInkscapeBoundaryDetection(t *testing.T)
+func TestCardTypeObjectMapping(t *testing.T)
+
+// Test SVG DOM parsing
+func TestSVGDOMExtraction(t *testing.T)
+func TestLayerHierarchyParsing(t *testing.T)
+func TestMetadataExtraction(t *testing.T)
+```
+
+**Integration Tests for Full Pipeline:**
+
+```go
+// Test complete ingestion workflow
+func TestInkscapeToTemplateConversion(t *testing.T)
+func TestMultipleCardTypeIngestion(t *testing.T)
+func TestMalformedSVGHandling(t *testing.T)
+```
+
+**Mock Data Tests:**
+
+```go
+// Test with synthetic Inkscape-style SVG files
+func TestSampleInkscapeCreatureCard(t *testing.T)
+func TestSampleInkscapeAnthemCard(t *testing.T)
+func TestInkscapeNamingConventionCompliance(t *testing.T)
+```
+
+#### **Phase 3b Testing: Template System Core**
+
+**Object Library Tests:**
+
+```go
+// Test object management and card type specificity
+func TestObjectLibraryCardTypeSelection(t *testing.T)
+func TestAnthemCardRedFrameSelection(t *testing.T)
+func TestArtifactCardMetallicFrameSelection(t *testing.T)
+func TestObjectStyleApplicationByType(t *testing.T)
+func TestObjectDependencyResolution(t *testing.T)
+```
+
+**Boundary Manager Tests:**
+
+```go
+// Test text boundary validation and constraints
+func TestTextBoundaryValidation(t *testing.T)
+func TestFontConstraintEnforcement(t *testing.T)
+func TestBoundaryContentTypeMatching(t *testing.T)
+func TestTextOverflowHandling(t *testing.T)
+func TestBoundaryCharacterLimits(t *testing.T)
+```
+
+**Symbol Registry Tests:**
+
+```go
+// Test symbol placement and sizing
+func TestSymbolRegistryLookup(t *testing.T)
+func TestSymbolSizingConstraints(t *testing.T)
+func TestSymbolBoundaryCompatibility(t *testing.T)
+func TestManaCostSymbolPlacement(t *testing.T)
+```
+
+**Template Composer Tests:**
+
+```go
+// Test complete template composition
+func TestTemplateComposerCardTypeIntegration(t *testing.T)
+func TestComposerObjectBoundaryAlignment(t *testing.T)
+func TestInteractiveZoneGeneration(t *testing.T)
+func TestAnimationTargetCreation(t *testing.T)
+```
+
+#### **Phase 3c Testing: Transparency Positioning**
+
+**Positioning Engine Tests:**
+
+```go
+// Test transparency-based positioning vs coordinates
+func TestTransparencyPositioningAccuracy(t *testing.T)
+func TestOpacityMapGeneration(t *testing.T)
+func TestLayerCompositingCorrectness(t *testing.T)
+func TestFixedCanvasSizeHandling(t *testing.T)
+```
+
+**Performance Comparison Tests:**
+
+```go
+// Benchmark transparency vs coordinate systems
+func BenchmarkTransparencyPositioning(b *testing.B)
+func BenchmarkCoordinatePositioning(b *testing.B)
+func TestPositioningMethodEquivalence(t *testing.T)
+```
+
+**Visual Validation Tests:**
+
+```go
+// Test visual output matches expectations
+func TestTextStaysWithinBoundaries(t *testing.T)
+func TestSymbolPlacementAccuracy(t *testing.T)
+func TestCardTypeVisualDifferentiation(t *testing.T)
+func TestTransparencyLayerBlending(t *testing.T)
+```
+
+#### **Cross-Phase Integration Tests**
+
+**End-to-End Pipeline Tests:**
+
+```go
+// Test complete flow: Inkscape → Template → SVG Output
+func TestCompleteInkscapeToSVGPipeline(t *testing.T)
+func TestBackwardCompatibilityWithExistingGenerator(t *testing.T)
+func TestDualFormatOutputConsistency(t *testing.T)
+```
+
+**Regression Tests:**
+
+```go
+// Ensure Phase 2 functionality remains intact
+func TestPhase2FunctionalityMaintained(t *testing.T)
+func TestExistingCardGenerationUnchanged(t *testing.T)
+func TestTemplateFactoryStillWorksForPNG(t *testing.T)
+```
+
+#### **Development Feedback Tests**
+
+**Fast Development Iteration Tests:**
+
+```go
+// Quick validation during development
+func TestInkscapeParserSmokeTest(t *testing.T)       // 5-second validation
+func TestBoundarySystemQuickCheck(t *testing.T)      // Boundary logic works
+func TestTemplateComposerBasicFlow(t *testing.T)     // Core composition works
+func TestTransparencyEngineSanityCheck(t *testing.T) // Positioning functional
+```
+
+**Visual Debug Tests:**
+
+```go
+// Generate test cards for visual inspection
+func TestGenerateVisualComparisonCards(t *testing.T)
+func TestBoundaryVisualizationOutput(t *testing.T)
+func TestCardTypeStyleDifferenceVisualization(t *testing.T)
+```
+
+#### **Test Data Strategy**
+
+**Mock Inkscape Files:**
+
+- Create minimal SVG files following naming conventions
+- Include various card types (creature, anthem, artifact, spell)
+- Test edge cases (missing layers, malformed naming)
+
+**Golden Master Tests:**
+
+- Save reference SVG outputs for visual regression testing
+- Compare generated cards against known-good outputs
+- Detect unintended visual changes during development
+
+**Property-Based Tests:**
+
+- Generate random card data and validate boundaries
+- Test that text never exceeds boundary limits
+- Verify object placement consistency across card types
+
+#### **Continuous Feedback During Development**
+
+**Phase 3a Development Tests:**
+
+```bash
+# Quick validation during Inkscape parser development
+go test ./internal/generator/svg/ingestion/ -v -run="Quick"
+
+# Comprehensive validation after major changes
+go test ./internal/generator/svg/ingestion/ -v
+```
+
+**Phase 3b Development Tests:**
+
+```bash
+# Template system validation
+go test ./internal/generator/svg/templates/ -v -run="SmokeTest"
+
+# Boundary system specific tests
+go test ./internal/generator/svg/templates/ -v -run="Boundary"
+```
+
+**Phase 3c Development Tests:**
+
+```bash
+# Positioning engine validation
+go test ./internal/generator/svg/positioning/ -v -run="Transparency"
+
+# Performance comparison
+go test ./internal/generator/svg/positioning/ -bench=.
+```
+
+#### **Success Metrics with Continuous Validation**
+
+- [ ] All Phase 3a tests pass (Inkscape ingestion working)
+- [ ] All Phase 3b tests pass (Template system functional)
+- [ ] All Phase 3c tests pass (Positioning engine operational)
+- [ ] Visual regression tests show no unintended changes
+- [ ] Performance benchmarks show transparency positioning efficiency
+- [ ] End-to-end tests demonstrate complete Inkscape → SVG pipeline
+
+#### **Test Implementation Schedule**
+
+**Week 1 (Phase 3a):** Set up ingestion pipeline tests alongside development
+**Week 2 (Phase 3b):** Implement template system tests with immediate feedback
+**Week 3 (Phase 3c):** Add positioning engine tests and performance benchmarks
+**Week 4:** Full integration testing and visual validation
 
 **🛑 STOP: Request user approval before proceeding to Phase 3**
 
