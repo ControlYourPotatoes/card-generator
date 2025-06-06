@@ -41,7 +41,7 @@ func TestTemplateFactory(t *testing.T) {
 			}
 
 			// Test GetFrame
-			cardData := &card.CardData{
+			cardData := &card.CardDTO{
 				Type:   tt.cardType,
 				Name:   "Test Card",
 				Cost:   1,

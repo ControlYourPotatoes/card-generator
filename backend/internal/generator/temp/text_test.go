@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ControlYourPotatoes/card-generator/internal/card"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/core/card"
 )
 
 type testProcessor struct {
@@ -38,12 +38,12 @@ func TestMain(m *testing.M) {
 func TestProcessors(t *testing.T) {
 	tests := []struct {
 		name     string
-		cardData *card.CardData
+		cardData *card.CardDTO
 		wantFile string
 	}{
 		{
 			name: "Basic Creature",
-			cardData: &card.CardData{
+			cardData: &card.CardDTO{
 				Type:    card.TypeCreature,
 				Name:    "Test Creature",
 				Cost:    2,
@@ -56,7 +56,7 @@ func TestProcessors(t *testing.T) {
 		},
 		{
 			name: "X Cost Creature",
-			cardData: &card.CardData{
+			cardData: &card.CardDTO{
 				Type:    card.TypeCreature,
 				Name:    "Variable Beast",
 				Cost:    -1,
@@ -71,15 +71,11 @@ func TestProcessors(t *testing.T) {
 	}
 
 	proc := newTestProcessor()
-	factory := card.NewCardFactory(nil) // nil store for testing
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Convert CardData to Card interface
-			cardInstance, err := factory.CreateFromData(tt.cardData)
-			if err != nil {
-				t.Fatalf("Failed to create card: %v", err)
-			}
+			// Convert CardDTO to Card interface using wrapper
+			cardInstance := card.Card(&cardImpl{data: tt.cardData})
 
 			details := &TextDetails{}
 
@@ -121,9 +117,10 @@ func TestProcessors(t *testing.T) {
 			}
 			details.Stats.CardType = string(tt.cardData.Type)
 			details.Stats.Subtype = tt.cardData.Trait
-			if creature, ok := cardInstance.(*card.Creature); ok {
-				details.Stats.Power = fmt.Sprintf("%d", creature.Attack)
-				details.Stats.Toughness = fmt.Sprintf("%d", creature.Defense)
+			// For creature stats, we'll get them from the DTO since cardImpl doesn't expose Attack/Defense directly
+			if tt.cardData.Type == card.TypeCreature {
+				details.Stats.Power = fmt.Sprintf("%d", tt.cardData.Attack)
+				details.Stats.Toughness = fmt.Sprintf("%d", tt.cardData.Defense)
 			}
 			details.Stats.Position = statsBounds.Rect
 			details.Stats.Style = statsBounds.Style
