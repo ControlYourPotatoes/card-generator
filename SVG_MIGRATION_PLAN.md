@@ -280,62 +280,94 @@ PASS: TestPhase2CompletionChecklist (0.00s)
 
 ---
 
-## **Phase 3: Enhanced Features** ⏱️ **Week 3-4** 🔄 **READY TO BEGIN**
+## **Phase 3: Template System Implementation** ⏱️ **Week 3-5** 🔄 **READY TO BEGIN**
+
+### **Reference Document**
+
+📋 **Detailed implementation plan**: [`SVG_TEMPLATE_SYSTEM_PLAN.md`](./SVG_TEMPLATE_SYSTEM_PLAN.md)
 
 ### **Objectives**
 
-- Add all remaining card type SVG templates
-- Implement game-ready features (interactive zones, animation targets)
-- Create dual-output support
+- Implement comprehensive template system with proper separation of concerns
+- Create Inkscape ingestion pipeline for clean object/boundary extraction
+- Build transparency-based positioning engine for optimal fixed-size card handling
+- Establish structured naming conventions for objects, boundaries, and symbols
 
-### **Tasks**
+### **Updated Architecture Understanding**
 
-#### **3.1 Complete SVG Template Set**
+**Key Clarifications:**
 
-- artifact.svg
-- spell.svg
-- incantation.svg
-- anthem.svg
-- Shared component library
+- **Objects** = Visual/styled elements (frames, backgrounds, decorative elements)
+- **Boundaries** = Text rendering guardrails only (areas where text/symbols are placed)
+- **Symbols** = Special text (costs, keywords, icons) that also need boundaries
+- **Transparency Positioning** = Use opacity maps instead of coordinate calculations
 
-#### **3.2 Game-Ready Features Implementation**
+### **Phase 3 Sub-Phases**
+
+#### **Phase 3a: Ingestion Pipeline** (Week 1)
+
+- Inkscape SVG parser with naming convention support
+- Object vs boundary detection and separation
+- Transparency positioning metadata extraction
+- Clean template data structure generation
+
+#### **Phase 3b: Template System Core** (Week 2)
+
+- Object library for visual elements
+- Boundary manager for text areas (text rendering guardrails)
+- Symbol registry for text symbols
+- Template composer combining all components
+
+#### **Phase 3c: Transparency Positioning** (Week 2-3)
+
+- Opacity-based positioning engine
+- Fixed 1500x2100 canvas optimization
+- Layer compositing system
+- Integration with existing SVG generator
+
+### **Enhanced Template Architecture**
 
 ```go
-// Interactive zone mapping
-// Animation target identification
-// CSS class structure for game states
-// Data attribute management
-```
-
-#### **3.3 Dual-Output Generator**
-
-```go
-// Location: backend/internal/generator/dual/generator.go
-type DualFormatGenerator struct {
-    pngGenerator CardGenerator  // Existing implementation
-    svgGenerator SVGGenerator   // New implementation
-}
-
-func (d *DualFormatGenerator) GenerateCard(data *card.CardDTO, outputPath string) error {
-    // Generate both PNG and SVG versions
-    // PNG for printing, SVG for web/game
+// New enhanced template system
+type EnhancedSVGTemplate interface {
+    SVGTemplate  // Existing interface
+    GetObjects() map[ObjectType]*CardObject      // Visual elements
+    GetBoundaries() map[BoundaryType]*TextBoundary // Text guardrails only
+    GetSymbols() map[SymbolType]*Symbol          // Text symbols
+    GetTransparencyLayers() map[string]*PositionLayer // Positioning
 }
 ```
+
+### **Naming Convention Implementation**
+
+**Objects** (Visual Elements):
+
+- `ObjectFrameBase`, `ObjectFrameBorder`, `ObjectNameTitle`, etc.
+
+**Boundaries** (Text Guardrails Only):
+
+- `BoundaryNameText`, `BoundaryEffectText`, `BoundaryCostSymbols`, etc.
+
+**Symbols** (Text Symbols):
+
+- `SymbolManaCost`, `SymbolKeywordHaste`, `SymbolSetIcon`, etc.
 
 ### **Phase 3 Acceptance Criteria**
 
-- [ ] All card types have SVG templates
-- [ ] Interactive zones properly defined
-- [ ] Animation targets identified
-- [ ] Dual-output generator functional
-- [ ] Game metadata properly generated
+- [ ] Inkscape ingestion pipeline separates objects from boundaries correctly
+- [ ] Object library manages visual elements independently from text systems
+- [ ] Boundary system provides text rendering guardrails for all text areas
+- [ ] Symbol registry handles cost/keyword/icon symbols as special text
+- [ ] Transparency positioning works for fixed 1500x2100 cards
+- [ ] Template composer integrates all components seamlessly
+- [ ] Integration maintains compatibility with existing SVG generator
 
-### **Testing Required Before Phase 4**
+### **Testing Strategy**
 
-- Generate all card types in SVG format
-- Verify interactive zones in browser
-- Test animation target structure
-- Performance comparison between formats
+- **Unit Tests**: Individual component validation
+- **Integration Tests**: Full pipeline from Inkscape to SVG
+- **Visual Tests**: Boundary guardrails keep text in proper areas
+- **Performance Tests**: Transparency vs coordinate positioning comparison
 
 **🛑 STOP: Request user approval before proceeding to Phase 3**
 
