@@ -1,7 +1,7 @@
 package manager
 
 import (
-	"github.com/ControlYourPotatoes/card-generator/internal/generator/text/types"
+	"github.com/ControlYourPotatoes/card-generator/backend/internal/generator/text/types"
 	"github.com/fogleman/gg"
 	"image/color"
 )
