@@ -1,0 +1,73 @@
+{
+  "name": "Card Generator Dev",
+  "image": "mcr.microsoft.com/devcontainers/go:1-1.23-bookworm",
+
+  // Add Node.js and Docker CLI as features
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20",
+      "nodeGypDependencies": false
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "version": "latest",
+      "moby": false
+    }
+  },
+
+  // VS Code extensions for Go + TypeScript/Next.js development
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "Prisma.prisma",
+        "bradlc.vscode-tailwindcss",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode.vscode-typescript-next",
+        "GitHub.copilot"
+      ],
+      "settings": {
+        "go.toolsManagement.autoUpdate": true,
+        "go.useLanguageServer": true,
+        "go.lintTool": "golangci-lint",
+        "editor.formatOnSave": true,
+        "[go]": {
+          "editor.defaultFormatter": "golang.go"
+        },
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[typescriptreact]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        }
+      }
+    }
+  },
+
+  // Install additional tools after container creation
+  "postCreateCommand": ".devcontainer/post-create.sh",
+
+  // Forward ports for development
+  // These are for services you run DIRECTLY (go run, npm run dev)
+  // NOT for docker-compose services (those use host ports already)
+  "forwardPorts": [
+    3000, // Next.js dev server (when running locally)
+    8080, // API Gateway (when running locally with go run)
+    5433 // PostgreSQL (mapped from docker-compose)
+  ],
+
+  // Environment variables for local development
+  "containerEnv": {
+    "DATABASE_URL": "postgresql://cardgen_user:password@host.docker.internal:5433/card_generator",
+    "GO_ENV": "development",
+    "NEXT_PUBLIC_API_URL": "http://localhost:8080/api/v1"
+  },
+
+  // Mount workspace
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "workspaceFolder": "/workspace",
+
+  // Run as non-root vscode user (default for devcontainers/go image)
+  "remoteUser": "vscode"
+}

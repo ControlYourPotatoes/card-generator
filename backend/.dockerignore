@@ -1,0 +1,17 @@
+# Binaries
+bin/
+*.exe
+*.out
+
+# Test artifacts
+coverage.html
+coverage.out
+test/testdata/output/
+
+# IDE
+.idea/
+.vscode/
+
+# Temp files
+*.tmp
+temp/

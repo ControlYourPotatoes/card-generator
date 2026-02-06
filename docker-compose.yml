@@ -1,0 +1,142 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cardgen-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432" # Expose on host 5433 to avoid conflicts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - card-gen-network
+
+  # API Gateway - routes frontend requests to microservices (Phase 1.2 ready)
+  api-gateway:
+    build:
+      context: ./backend
+      dockerfile: services/api-gateway/Dockerfile
+      args:
+        SERVICE_NAME: api-gateway
+    container_name: cardgen-api-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - card-gen-network
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Placeholder services (uncomment/enable in Phase 2)
+  # card-generator:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: services/card-generator/Dockerfile
+  #     args:
+  #       SERVICE_NAME: card-generator
+  #   container_name: cardgen-card-generator
+  #   ports:
+  #     - "8081:8081"
+  #   environment:
+  #     - DATABASE_URL=${DATABASE_URL}
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - card-gen-network
+
+  # image-renderer:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: services/image-renderer/Dockerfile
+  #   container_name: cardgen-image-renderer
+  #   ports:
+  #     - "8082:8082"
+  #   networks:
+  #     - card-gen-network
+
+  # importer:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: services/importer/Dockerfile
+  #   container_name: cardgen-importer
+  #   ports:
+  #     - "8084:8084"
+  #   environment:
+  #     - DATABASE_URL=${DATABASE_URL}
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - card-gen-network
+
+  # Frontend (Next.js) - dev mode with hot reload
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile_inline: |
+        FROM node:20-alpine AS deps
+        WORKDIR /app
+        COPY package*.json ./
+        RUN npm ci
+
+        FROM node:20-alpine AS runner
+        WORKDIR /app
+        COPY --from=deps /app/node_modules ./node_modules
+        COPY . .
+        EXPOSE 3000
+        CMD ["npm", "run", "dev"]
+    container_name: cardgen-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+    depends_on:
+      api-gateway:
+        condition: service_started
+    networks:
+      - card-gen-network
+
+  # Adminer for DB management (optional)
+  adminer:
+    image: adminer
+    container_name: cardgen-adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - card-gen-network
+
+networks:
+  card-gen-network:
+    driver: bridge
+    name: cardgen-network
+
+volumes:
+  postgres_data:
+    driver: local
