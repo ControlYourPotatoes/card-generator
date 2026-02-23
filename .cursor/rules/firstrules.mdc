@@ -1,8 +1,32 @@
 ---
-description: When writing new code
+description: Default guardrails for new code
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 SOLID Principles: Single responsibility, Open/closed, Liskov substitution, Interface segregation, Dependency inversion. 
 Clean Architecture: Dependencies point inward, business logic is isolated
 Domain-Driven Design: Rich domain models, ubiquitous language
+
+Spec-first execution:
+- Do not implement without a linked spec file in `specs/`.
+- Start by clarifying scope, non-goals, risks, and acceptance criteria.
+
+Scope and complexity control:
+- Prefer the smallest change that can satisfy acceptance criteria.
+- Define a complexity budget in the spec and fail changes that exceed it.
+- If a task expands, split into phases and ship the current slice first.
+
+Measurable impact:
+- Every spec must include baseline, target, and how impact is measured.
+- "Done" requires evidence, not only implementation notes.
+
+Practical testing:
+- Avoid over-mocking core behavior.
+- Prefer tests at stable boundaries (API contracts, storage integration, parsing/generation flows).
+- Unit tests are fine for pure logic, but acceptance should rely on realistic integration paths.
+
+Discussion gate before coding:
+- Capture 3 decisions before implementation:
+  1) What problem and who it helps
+  2) What is explicitly out of scope
+  3) What evidence will prove value

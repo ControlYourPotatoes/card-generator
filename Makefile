@@ -1,4 +1,4 @@
-.PHONY: build-importer run-importer clean clean-db test test-unit test-integration test-e2e test-coverage test-benchmark test-verbose help
+.PHONY: build-importer run-importer clean clean-db test test-unit test-integration test-e2e test-coverage test-benchmark test-verbose spec-check verify-spec dev-check help
 
 # Build the importer tool
 build-importer:
@@ -108,6 +108,25 @@ quality: fmt vet test-unit
 dev: quality test-coverage
 	@echo "Development checks completed!"
 
+# Validate all specs in specs/ (excluding TEMPLATE.md)
+spec-check:
+	@echo "Validating spec files..."
+	@bash scripts/verify/spec-check.sh
+
+# Validate a single spec file
+verify-spec:
+	@if [ -z "$(SPEC)" ]; then \
+		echo "Usage: make verify-spec SPEC=specs/feature-name.md"; \
+		exit 1; \
+	fi
+	@echo "Validating spec: $(SPEC)"
+	@bash scripts/verify/spec-check.sh "$(SPEC)"
+
+# Spec + practical test guardrails
+dev-check:
+	@echo "Running spec-driven development checks..."
+	@bash scripts/verify/dev-check.sh
+
 # CI workflow
 ci: quality test-coverage test-benchmark
 	@echo "CI pipeline completed!"
@@ -169,6 +188,9 @@ help:
 	@echo "  make vet                - Vet code for issues"
 	@echo "  make quality            - Run format, vet, and unit tests"
 	@echo "  make dev                - Development workflow (quality + coverage)"
+	@echo "  make spec-check         - Validate all specs in specs/"
+	@echo "  make verify-spec SPEC=  - Validate one spec file"
+	@echo "  make dev-check          - Run spec validation + backend checks"
 	@echo "  make ci                 - CI workflow (quality + coverage + benchmarks)"
 	@echo ""
 	@echo "  make generate-testdata  - Copy test data to backend/test/testdata"

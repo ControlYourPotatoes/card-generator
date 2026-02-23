@@ -414,3 +414,49 @@ Before finalizing any implementation plan, verify:
 7. **Share with stakeholders** for feedback and approval
 
 **Remember**: The goal is controlled, high-quality implementation with clear progress tracking and risk mitigation.
+
+---
+
+## **HANDOFF PROMPT (SPEC-DRIVEN STARTING POINT + DOCS CONSOLIDATION)**
+
+```markdown
+You are working in `/workspaces/card-generator`.
+
+Start by reading these current references:
+- `docs/agent-workflow.md`
+- `docs/codebase-assessment.md`
+- `docs/docs-consolidation.md`
+- `specs/TEMPLATE.md`
+- `.cursor/rules/firstrules.mdc`
+
+Objective:
+1) Re-evaluate current status and confirm the practical starting slice.
+2) Execute the docs consolidation plan incrementally.
+3) Produce/advance one implementation spec using our spec-first workflow.
+
+Mandatory workflow:
+- Follow `docs/agent-workflow.md`.
+- Do not implement feature code before fully completing section `## 3. Discussion Gate` in the target spec.
+- Keep changes minimal and within declared complexity budget.
+
+Deliverables:
+1) Update `docs/codebase-assessment.md` only if findings changed.
+2) Update `docs/docs-consolidation.md` with completed steps and remaining items.
+3) Create or update a feature spec at `specs/<feature>.md` using `specs/TEMPLATE.md`.
+4) Add evidence log entries with commands and outcomes.
+
+Verification commands:
+- `make spec-check`
+- `make verify-spec SPEC=specs/<feature>.md`
+- `make dev-check` (report blockers if baseline debt still exists)
+
+Constraints:
+- No broad refactors.
+- No new dependencies unless justified in the spec.
+- Archive outdated docs instead of deleting directly when uncertain.
+
+Output format:
+- Short findings summary.
+- Chosen starting slice with rationale.
+- Files updated and verification results.
+```
