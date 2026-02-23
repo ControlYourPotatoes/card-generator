@@ -36,6 +36,15 @@ Reduce documentation drift and create a single reliable reference path for plann
 4. Replace generic frontend readme content with project-specific run/integration instructions.
 5. Require each new feature to have a `specs/*.md` entry before implementation.
 
+## Execution Log
+- 2026-02-23: Completed slice 1 items:
+  - Cleaned `PROGRESS.md` to factual status-only content.
+  - Created `docs/archive/`.
+  - Moved `container_setup.md` to `docs/archive/container_setup.md` with archive header and replacement pointers.
+- 2026-02-23: Completed slice 2 items:
+  - Added a `Docs Index` section to `plan.md` pointing to canonical references and spec execution flow.
+  - Replaced `frontend/README.md` boilerplate with project-specific run and integration guidance.
+
 ## Guardrails for Future Docs
 - No roadmap changes without date + owner + validation evidence.
 - No feature execution plans outside `specs/`.

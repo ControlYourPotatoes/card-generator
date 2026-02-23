@@ -2,6 +2,16 @@
 
 ## Docker Containerization & Microservices Architecture
 
+## Docs Index (Current References)
+
+- Workflow and guardrails: `docs/agent-workflow.md`
+- Current architecture/status snapshot: `docs/codebase-assessment.md`
+- Documentation maintenance plan: `docs/docs-consolidation.md`
+- Active feature specs: `specs/`
+- Factual implementation log: `PROGRESS.md`
+
+Execution note: this file is the macro roadmap. Day-to-day implementation planning should happen in `specs/*.md` using `specs/TEMPLATE.md`.
+
 ### IMPORTANT AGENT RULES
 
 🚨 **DO NOT PROCEED TO THE NEXT PHASE WITHOUT EXPLICIT USER APPROVAL**

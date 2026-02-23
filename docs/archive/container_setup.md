@@ -1,3 +1,13 @@
+# Status: Archived
+
+Reason: Legacy devcontainer troubleshooting note; superseded by `.devcontainer/README.md` and `docs/agent-workflow.md`.
+
+Replacement references:
+- `.devcontainer/README.md`
+- `docs/agent-workflow.md`
+
+---
+
 
 # 3 fixes to the devcontainer config
 

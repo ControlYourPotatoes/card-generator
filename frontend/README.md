@@ -1,29 +1,53 @@
-# Create T3 App
+# Card Generator Frontend
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+This frontend is a Next.js + tRPC app used to interact with the card-generator backend services through the API gateway.
 
-## What's next? How do I make an app with this?
+## Current Architecture Role
+- UI and app routes: Next.js App Router
+- Type-safe server calls: tRPC routers under `src/server/api/routers`
+- Gateway integration point: `src/server/api/gateway.ts`
+- Contracts source of truth: `../api/contracts.ts`
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+## Development Modes
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+### Recommended: Devcontainer + Compose Infrastructure
+1. Start infrastructure:
+```bash
+docker compose --env-file .env.docker up -d postgres adminer
+```
+2. Run API gateway directly:
+```bash
+cd backend && go run ./services/api-gateway/
+```
+3. Run frontend dev server:
+```bash
+cd frontend && npm run dev
+```
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+### Full Compose (deployment-style check)
+```bash
+docker compose --env-file .env.docker up -d
+```
 
-## Learn More
+## Local URLs
+- Frontend: `http://localhost:3000`
+- API Gateway: `http://localhost:8080/api/v1`
+- Adminer: `http://localhost:8081`
+- Postgres host port: `5433`
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+## Environment Notes
+- Frontend expects `NEXT_PUBLIC_API_URL` to point to the gateway base path.
+- In devcontainer, environment values are set in `.devcontainer/devcontainer.json`.
+- For compose frontend service, `NEXT_PUBLIC_API_URL` is configured in `docker-compose.yml`.
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+## Verification Commands
+From repo root:
+```bash
+make spec-check
+make dev-check
+```
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
-
-## How do I deploy this?
-
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+## Related Docs
+- Workflow: `docs/agent-workflow.md`
+- Status snapshot: `docs/codebase-assessment.md`
+- Docs consolidation: `docs/docs-consolidation.md`
